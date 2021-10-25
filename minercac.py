@@ -1,35 +1,43 @@
 #!/usr/bin/python3
 """ miner.py - get information from CAC
-    v0.1.0 - 2021-10-21 - nelbren@nelbren.com"""
+    v0.1.1 - 2021-10-24 - nelbren@nelbren.com"""
 import re
 import os
+import sys
 import pickle
 import configparser
+import tempfile
 import requests
 
 class Error(Exception):
-    """Base class for other exceptions"""
+    '''Base class for other exceptions'''
 
 class CantGetCsrf(Error):
-    """Raised when Can't get _csrf"""
+    '''Raised when Can't get _csrf'''
 
 class CantGetUSDandBTC(Error):
-    """Raised when Can't get usd and btc"""
+    '''Raised when Can't get usd and btc'''
 
 def debug(is_ok):
-    """Show tag"""
+    '''Show tag'''
     if DEBUG:
         tag = 1 if is_ok else 0
         print(f'{TAG[tag]} ', end='')
 
+def check_config(path, filename):
+    '''Check if config file exist'''
+    if not os.path.exists(path + '/' + filename):
+        print(f'Create the file "{filename}" using the template "secret.cfg.EXAMPLE"!')
+        sys.exit(1)
+
 class CACPanel:
-    """Class to manage the access to CAC Panel"""
+    '''Class to manage the access to CAC Panel'''
     url_base = 'https://wallet.cloudatcost.com'
-    cookie = '/tmp/.wallet_cloudatcost.cookie'
+    cookie = '.wallet_cloudatcost.cookie'
     logged = False
 
     def login(self):
-        """Login process"""
+        '''Login process'''
         if DEBUG:
             print('Login -> ', end='')
         data = { 'email': self.username, 'password': self.password, '_csrf': self._csrf }
@@ -54,7 +62,7 @@ class CACPanel:
         debug(self.logged)
 
     def pre_login(self):
-        """Pre-login process"""
+        '''Pre-login process'''
         if DEBUG:
             print('Pre-login -> ', end='')
         url = self.url_base + '/login'
@@ -72,10 +80,13 @@ class CACPanel:
     def __init__(self):
         config = configparser.ConfigParser()
         path = os.path.dirname(os.path.realpath(__file__))
-        config.read_file(open(path + '/.secret.cfg'))
+        filename = '.secret.cfg'
+        check_config(path, filename)
+        config.read_file(open(path + '/' + filename))
         self.username = config.get('CAC_WALLET', 'USERNAME')
         self.password = config.get('CAC_WALLET', 'PASSWORD')
         self.session = requests.session()
+        self.cookie = tempfile.gettempdir() + '/' + self.cookie
         if os.path.exists(self.cookie):
             if DEBUG:
                 print('Reusing 🍪-> ', end='')
@@ -87,7 +98,7 @@ class CACPanel:
             debug(match)
             if match:
                 return
-            self.pre_login()
+        self.pre_login()
 
     def wallet(self):
         '''Get Wallet information'''

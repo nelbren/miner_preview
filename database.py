@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 """ database.py - get persistence for data
-    v0.0.2 - 2021-10-21 - nelbren@nelbren.com"""
+    v0.0.3 - 2021-10-24 - nelbren@nelbren.com"""
 from pathlib import Path
 from peewee import (
         SqliteDatabase,
@@ -11,7 +11,7 @@ from peewee import (
     )
 
 HOME = str(Path.home())
-BASE = HOME + '/.miner.db'
+BASE = HOME + '/.miner_preview.db'
 db = SqliteDatabase(BASE)
 
 class BaseModel(Model):
@@ -31,9 +31,6 @@ class Unpaid(BaseModel):
     timestamp = CharField(max_length=18)
     value = FloatField()
     usd = FloatField()
-    pm_type = CharField(max_length=3)
-    pm_max = FloatField()
-    pm = FloatField()
 
     class Meta:
         '''Metadata'''
@@ -46,4 +43,8 @@ class Unpaid(BaseModel):
 
     def __str__(self):
         # pylint: disable=no-member
-        return f'{self.id} : {self.source} {self.currency} {self.work} {self.step}'
+        return (
+                   f'{self.id} : SRC: {self.source} CUR: {self.currency} '
+                   f'WKR: {self.work} STP: {self.step} '
+                   f'VAL: {self.value} USD: {self.usd}'
+               )

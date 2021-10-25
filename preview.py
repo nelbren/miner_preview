@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 """ preview.py - show information from CAC
-    v0.1.4 - 2021-10-21 - nelbren@nelbren.com"""
+    v0.1.5 - 2021-10-24 - nelbren@nelbren.com"""
 import os
 import sys
 import time
@@ -9,6 +9,7 @@ from datetime import (
         datetime,
         timedelta
     )
+import configparser
 from rich import box
 from rich.table import Table
 from rich.console import Console
@@ -31,6 +32,17 @@ SOURCE = 'cloudatcost'
 CURRENCY = 'btc'
 unpaid_save = {}
 next_update = {}
+
+def get_goals():
+    '''Get goals from config'''
+    config = configparser.ConfigParser()
+    path = os.path.dirname(os.path.realpath(__file__))
+    filename = '.secret.cfg'
+    minercac.check_config(path, filename)
+    config.read_file(open(path + '/' + filename))
+    goal_usd = config.get('CAC_WALLET', 'GOAL_USD', fallback=None)
+    goal_btc = config.get('CAC_WALLET', 'GOAL_BTC', fallback=None)
+    return goal_usd, goal_btc
 
 def setup():
     '''Setup'''
@@ -73,12 +85,13 @@ def set_tag_delta(value1, value2):
 
 def set_option_value(value1, value2):
     '''Set tag value'''
-    color = 'red'
     if value1 == 0:
-        color = 'white]'
+        color, label = 'white', '='
     elif value1 > value2:
-        color = 'green'
-    return f'[black on {color}]v[{color} on black]'
+        color, label = 'green', '^'
+    else:
+        color, label = 'red', 'v'
+    return f'[black on {color}]{label}[{color} on black]'
 
 def tags_row(tag, last_unpaid, unpaid, last_delta, delta):
     '''Set tag colors to row'''
@@ -88,12 +101,15 @@ def tags_row(tag, last_unpaid, unpaid, last_delta, delta):
         tag['timestamp'] = '[white on black]'
 
     if ts_to_int(last_delta['timestamp']) == 0:
-        color = 'white'
+        if ts_to_int(delta['timestamp']) == 0:
+            color, label = 'white', '='
+        else:
+            color, label = 'green', '^'
     elif ts_to_int(delta['timestamp']) > ts_to_int(last_delta['timestamp']):
-        color = 'green'
+        color, label = 'green', '^'
     else:
-        color = 'yellow'
-    tag['±timestamp'] = f'[black on {color}]v[{color} on black]'
+        color, label = 'red', 'v'
+    tag['±timestamp'] = f'[black on {color}]{label}[{color} on black]'
 
     if last_unpaid is None:
         last_value, last_usd = 0, 0
@@ -104,7 +120,7 @@ def tags_row(tag, last_unpaid, unpaid, last_delta, delta):
     tag['usd'] = set_option_value(unpaid.usd, last_usd)
     tag['±usd'] = set_tag_delta(delta['±usd'], last_delta['±usd'])
 
-def tags_title(tag, diff_ts_now, goal_pm):
+def tags_title(tag, diff_ts_now):
     '''Set tag colors to title'''
     tag['style'] = 'black on '
     if diff_ts_now > timedelta(hours=4):
@@ -114,6 +130,8 @@ def tags_title(tag, diff_ts_now, goal_pm):
     tag['style'] += color
     tag['title'] = f"[{tag['style']}][not bold]"
 
+def tag_pm(tag, goal_pm):
+    '''Set tag colors to pm'''
     tag['pm'] = '[bold]'
     if goal_pm > 75:
         tag['pm'] += '[white]'
@@ -124,41 +142,54 @@ def tags_title(tag, diff_ts_now, goal_pm):
     else:
         tag['pm'] += '[white]'
 
-def get_goal_msg(tag, goal_pm):
-    '''Goal Message'''
-    if goal:
-        rest_cols = columns - 50
-        if rest_cols < 5:
-            return ''
-        bars = rest_cols
-        show_bars = int((goal_pm / 100) * bars)
-        if show_bars >= bars:
-            show_bars = bars
-            rest_bars = 0
-            missing = ''
-        else:
-            rest_bars = bars - show_bars
-            missing = '[not bold][red]' + rest_bars * '■'
-        progress = '[bold][green]' + show_bars * '■'
-        print(bars, show_bars, rest_bars)
-        print(missing)
-        progress_bar = f'{progress}{missing}'
-        goal_msg = (
-                       f" | 🎯GOAL: { tag['pm']}{goal_pm:05.2f}% "
-                       f"{tag['title']}[{progress_bar}{tag['title']}] "
-                   )
+def get_goal_msg_item(tag, label, goal, value, item_cols):
+    '''Goal USD'''
+    if not goal:
+        return ''
+    if item_cols < 5:
+        return ''
+    bars = item_cols - 10 # 051.03%USD
+    goal_pm = round((float(value) / float(goal)) * 100, 2)
+    show_bars = int((goal_pm / 100) * bars)
+    if show_bars >= bars:
+        show_bars = bars
+        rest_bars = 0
+        missing = ''
     else:
-        goal_msg = ''
+        rest_bars = bars - show_bars
+        missing = '[not bold][red]' + rest_bars * '■'
+    progress = '[bold][green]' + show_bars * '■'
+    progress_bar = f'{progress}{missing}'
+    tag_pm(tag, goal_pm)
+    goal_msg = (
+                    f"🎯{tag['pm']}{goal_pm:06.2f}%{label}"
+                    f"{tag['title']}[{progress_bar}{tag['title']}]"
+                )
     return goal_msg
 
-def show_data(goal_pm):
+def get_goal_msg(tag, unpaid):
+    '''Goal Message'''
+    goal_usd, goal_btc = get_goals()
+    if not goal_usd and not goal_btc:
+        return ''
+    rest_cols = columns - 37
+    items = 0
+    if goal_usd:
+        items += 1
+    if goal_btc:
+        items += 1
+    items_cols = int(rest_cols / items)
+    goal_msg_detail = get_goal_msg_item(tag, 'USD', goal_usd, unpaid.usd, items_cols)
+    goal_msg_detail += get_goal_msg_item(tag, 'BTC', goal_btc, unpaid.value, items_cols)
+    return f'|{goal_msg_detail} '
+
+def show_data():
     '''Show time'''
     timestamp = datetime.now().strftime(TS_FMT)
     table = Table(show_header=True, header_style='bold white',
-                  box=box.SIMPLE, show_edge=False, expand=True)
+                    box=box.SIMPLE, show_edge=False, expand=True)
     add_columns(table)
     tag = {}
-    tag['currency'] = '[magenta]'
     lines_show = lines - 5
     tag['currency'] = '[cyan]'
     try:
@@ -198,12 +229,12 @@ def show_data(goal_pm):
                 delta['±usd'] = unpaid.usd - last_unpaid.usd
 
             tags_row(tag, last_unpaid, unpaid, last_delta, delta)
-            table.add_row(f"{tag['timestamp']}{unpaid.timestamp}",
-                          f"{tag['±timestamp']}{delta['timestamp']}",
-                          f"{tag['value']}{unpaid.value:1.8f}",
-                          f"{tag['±value']}{delta['±value']:1.8f}",
-                          f"{tag['usd']}{unpaid.usd:05.2f}",
-                          f"{tag['±usd']}{delta['±usd']:05.2f}")
+            table.add_row(  f"{tag['timestamp']}{unpaid.timestamp}",
+                            f"{tag['±timestamp']}{delta['timestamp']}",
+                            f"{tag['value']}{unpaid.value:1.8f}",
+                            f"{tag['±value']}{delta['±value']:1.8f}",
+                            f"{tag['usd']}{unpaid.usd:05.2f}",
+                            f"{tag['±usd']}{delta['±usd']:05.2f}")
             lines_show -= 1
             if item == unpaids.count():
                 diff_ts_now = (
@@ -212,14 +243,15 @@ def show_data(goal_pm):
                             )
                 timestamp_obj = datetime.strptime(unpaid.timestamp, TS_FMT)
                 next_update['timestamp'] = timestamp_obj + timedelta(hours=4)
+                next_update['timestamp'] = next_update['timestamp'].replace(minute=1, second=0)
             last_unpaid = unpaid
 
     print(chr(27) + "[2J")
     console = Console(record=True)
-    tags_title(tag, diff_ts_now, goal_pm)
-    goal_msg = get_goal_msg(tag, goal_pm)
+    tags_title(tag, diff_ts_now)
+    goal_msg = get_goal_msg(tag, last_unpaid)
     console.print(
-            f"{tag['title']} ⛏️ BTC: "
+            f"{tag['title']} ⛏️ BTC@"
             f"[bold white]{timestamp}[not bold black] {tag['ok']}{goal_msg}",
             style=tag['style'], justify='center'
         )
@@ -228,9 +260,11 @@ def show_data(goal_pm):
         console.print()
         while lines_show:
             lines_show -= 1
-            console.print('x')
+            console.print()
+    next_update['missing'] = next_update['timestamp'] - datetime.now()
+    return next_update['missing'].total_seconds()
 
-def show_progress():
+def show_progress(seconds):
     '''Show the progress bar'''
     with Progress(
             TextColumn(
@@ -242,12 +276,13 @@ def show_progress():
             "[progress.percentage]{task.percentage:>3.1f}%",
             SpinnerColumn(), TimeRemainingColumn(), expand=True
         ) as progress:
-        task1 = progress.add_task('waiting 4 hours', total=60 * 60 * 4)
+        #task1 = progress.add_task('waiting 4 hours', total=60 * 60 * 4)
+        task1 = progress.add_task('waiting 4 hours', total=seconds)
         while not progress.finished:
             progress.update(task1, advance=1)
             time.sleep(1)
 
-def save_data(value, usd, goal_pm):
+def save_data(value, usd):
     '''Save record'''
     try:
         unpaid = Unpaid.select().where(
@@ -264,11 +299,8 @@ def save_data(value, usd, goal_pm):
         timestamp = f'{datetime.now()}'
         timestamp_obj = datetime.strptime(timestamp, TS_FMT + '.%f')
         timestamp = timestamp_obj.strftime(TS_FMT)
-        goal_pm_type = 'usd' # In the future goal too to btc
-
         unpaid = Unpaid(source=SOURCE, currency=CURRENCY, work=work,
-            step=step, timestamp=timestamp, value=value, usd=usd,
-            pm_type=goal_pm_type, pm_max=goal, pm=goal_pm)
+            step=step, timestamp=timestamp, value=value, usd=usd)
         unpaid.save()
         # pylint: disable=no-member
         unpaid_save[SOURCE] = unpaid.id
@@ -279,49 +311,38 @@ def get_data():
     '''Get data from miner'''
     cacpanel = minercac.CACPanel()
     btc, usd = cacpanel.wallet()
-    if goal:
-        goal_pm = round((float(usd) / goal) * 100, 2)
-    else:
-        goal_pm = 0
-    save_data(btc, usd, goal_pm)
-    return goal_pm
+    #if goal:
+    #    goal_pm = round((float(usd) / goal) * 100, 2)
+    #else:
+    #    goal_pm = 0
+    save_data(btc, usd)
 
 def do_loop():
     '''Eternal Loop 4 forever & ever'''
     while True:
-        goal_pm = get_data()
-        show_data(goal_pm)
+        get_data()
+        seconds = show_data()
         if records == 0:
             return
         try:
-            show_progress()
+            show_progress(seconds)
         except KeyboardInterrupt:
             sys.exit(0)
 
 def params():
     '''Set params'''
     parser = argparse.ArgumentParser(
-        description='This program get wallet balance for Cloudatcost mining process'
+        description='Get wallet balance from Cloudatcost mining process.'
     )
     parser.add_argument('-r', '--records', type=int, required=False,
         default=-1, help='The number of last records to get (0 = All)')
-    parser.add_argument('-g', '--goal', type=float, required=False, default=0,
-            help=(
-                'The target to set the percentage of progress. '
-                '(It is only configured once and is used in the future)'
-            )
-        )
     args = parser.parse_args()
     if args.records == -1:
         _records = records
     else:
         _records = args.records
-    if args.goal == -1:
-        _goal = 0
-    else:
-        _goal = args.goal
-    return _records, _goal
+    return _records
 
 columns, lines, records = setup()
-records, goal = params()
+records = params()
 do_loop()
