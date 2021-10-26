@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 """ preview.py - show information from CAC
-    v0.1.5 - 2021-10-24 - nelbren@nelbren.com"""
+    v0.1.6 - 2021-10-25 - nelbren@nelbren.com"""
 import os
 import sys
 import time
@@ -33,6 +33,24 @@ CURRENCY = 'btc'
 unpaid_save = {}
 next_update = {}
 
+def setup_db():
+    '''Setup'''
+    models = [ Unpaid ]
+    db.connect()
+    db.create_tables(models)
+
+def params():
+    '''Set params'''
+    parser = argparse.ArgumentParser(
+        description='Get wallet balance from Cloudatcost mining process.'
+    )
+    parser.add_argument('-r', '--records', type=int, required=False,
+        default=-1, help='The number of last records to get (0 = All)')
+    parser.add_argument('-ou', '--only_update', action='store_true',
+        default=False, dest='update', help='Only update database (useful with crontab)')
+    args = parser.parse_args()
+    return args.update, args.records
+
 def get_goals():
     '''Get goals from config'''
     config = configparser.ConfigParser()
@@ -44,25 +62,22 @@ def get_goals():
     goal_btc = config.get('CAC_WALLET', 'GOAL_BTC', fallback=None)
     return goal_usd, goal_btc
 
-def setup():
-    '''Setup'''
-    models = [ Unpaid ]
-    db.connect()
-    db.create_tables(models)
+def get_columns_and_lines():
+    '''Get size of terminal'''
     try:
-        _columns, _lines = os.get_terminal_size()
+        columns, lines = os.get_terminal_size()
     # pylint: disable=unused-variable
     except OSError as exception:
-        _columns, _lines = 80, 24
-    _records = _lines - 5
-    return _columns, _lines, _records
+        columns, lines = 80, 24 # Default
+    return { 'columns': columns, 'lines': lines }
 
 def add_columns(table):
     ''''Header'''
-    table.add_column('timestamp', justify='center', style='white', no_wrap=True)
-    table.add_column('±ts', justify='right', style='magenta', no_wrap=True)
+    table.add_column('ts', justify='center', style='white', no_wrap=True, max_width=10)
+    table.add_column('±ts', justify='right', style='magenta', no_wrap=True,  max_width=8)
     table.add_column('value', justify='right', style='green', no_wrap=True)
     table.add_column('±value', justify='right', style='magenta', no_wrap=True)
+    table.add_column('±(±val)', justify='right', style='magenta', no_wrap=True)
     table.add_column('usd', justify='right', style='green', no_wrap=True)
     table.add_column('±usd', justify='right', style='magenta', no_wrap=True)
 
@@ -75,13 +90,13 @@ def ts_to_int(timediff):
         ts_str = ts_str.replace(':', '')
     return int(ts_str)
 
-def set_tag_delta(value1, value2):
+def set_tag_delta(value1, value2, color):
     '''Set tag delta'''
     if value1 == value2:
         return '[black on white]=[white on black]'
     if value1 > value2:
         return '[black on green]^[green on black]'
-    return '[black on red]v[red on black]'
+    return f'[black on {color}]v[{color} on black]'
 
 def set_option_value(value1, value2):
     '''Set tag value'''
@@ -95,10 +110,11 @@ def set_option_value(value1, value2):
 
 def tags_row(tag, last_unpaid, unpaid, last_delta, delta):
     '''Set tag colors to row'''
+    tag['date'] = '[black on white]'
     if unpaid_save[SOURCE] == unpaid.id:
-        tag['timestamp'] = '[black on white]'
+        tag['time'] = '[black on yellow]'
     else:
-        tag['timestamp'] = '[white on black]'
+        tag['time'] = '[white on black]'
 
     if ts_to_int(last_delta['timestamp']) == 0:
         if ts_to_int(delta['timestamp']) == 0:
@@ -108,7 +124,7 @@ def tags_row(tag, last_unpaid, unpaid, last_delta, delta):
     elif ts_to_int(delta['timestamp']) > ts_to_int(last_delta['timestamp']):
         color, label = 'green', '^'
     else:
-        color, label = 'red', 'v'
+        color, label = 'yellow', 'v'
     tag['±timestamp'] = f'[black on {color}]{label}[{color} on black]'
 
     if last_unpaid is None:
@@ -116,9 +132,9 @@ def tags_row(tag, last_unpaid, unpaid, last_delta, delta):
     else:
         last_value, last_usd = last_unpaid.value, last_unpaid.usd
     tag['value'] = set_option_value(unpaid.value, last_value)
-    tag['±value'] = set_tag_delta(delta['±value'], last_delta['±value'])
+    tag['±value'] = set_tag_delta(delta['±value'], last_delta['±value'], 'red')
     tag['usd'] = set_option_value(unpaid.usd, last_usd)
-    tag['±usd'] = set_tag_delta(delta['±usd'], last_delta['±usd'])
+    tag['±usd'] = set_tag_delta(delta['±usd'], last_delta['±usd'], 'cyan')
 
 def tags_title(tag, diff_ts_now):
     '''Set tag colors to title'''
@@ -167,12 +183,13 @@ def get_goal_msg_item(tag, label, goal, value, item_cols):
                 )
     return goal_msg
 
-def get_goal_msg(tag, unpaid):
+def get_goal_msg(tag, unpaid, size_term):
     '''Goal Message'''
     goal_usd, goal_btc = get_goals()
     if not goal_usd and not goal_btc:
         return ''
-    rest_cols = columns - 37
+
+    rest_cols = size_term['columns'] - 37
     items = 0
     if goal_usd:
         items += 1
@@ -183,15 +200,38 @@ def get_goal_msg(tag, unpaid):
     goal_msg_detail += get_goal_msg_item(tag, 'BTC', goal_btc, unpaid.value, items_cols)
     return f'|{goal_msg_detail} '
 
-def show_data():
-    '''Show time'''
-    timestamp = datetime.now().strftime(TS_FMT)
-    table = Table(show_header=True, header_style='bold white',
-                    box=box.SIMPLE, show_edge=False, expand=True)
-    add_columns(table)
-    tag = {}
-    lines_show = lines - 5
-    tag['currency'] = '[cyan]'
+def set_deltas_empty(unpaid, delta):
+    '''Delta empty'''
+    delta['timestamp'] = '0'
+    delta['date'], delta['time'] = unpaid.timestamp.split(' ')
+    delta['±value'] = delta['±±value'] = delta['±usd'] = 0
+    delta['ts_short'] = '00:00'
+
+def set_deltas(last_unpaid, unpaid, last_delta, delta):
+    '''Delta'''
+    delta['timestamp'] = (
+                    datetime.strptime(unpaid.timestamp, TS_FMT) -
+                    datetime.strptime(last_unpaid.timestamp, TS_FMT)
+                )
+    if delta['timestamp'] != '0':
+        ts_str = str(delta['timestamp'])
+        if delta['timestamp'].days > 0:
+            ts_str = ts_str.replace(' days, ', ':')
+        ts_lst = ts_str.split(':')
+        if len(ts_lst) > 3:
+            delta['ts_short'] = ts_lst[0] + ':' + ts_lst[1] + ':' + ts_list[2]
+        else:
+            delta['ts_short'] = ts_lst[0] + ':' + ts_lst[1]
+    delta['date'], delta['time'] = unpaid.timestamp.split(' ')
+    delta['±value'] = unpaid.value - last_unpaid.value
+    delta['±±value'] = (
+                    delta['±value'] * 100000000 -
+                    last_delta['±value'] * 100000000
+                )
+    delta['±usd'] = unpaid.usd - last_unpaid.usd
+
+def get_records(records):
+    '''Get records and recalculate number of records'''
     try:
         if records == 0:
             unpaids = Unpaid.select().where(
@@ -205,62 +245,103 @@ def show_data():
                             (Unpaid.currency == CURRENCY)
                         ).order_by(Unpaid.work.desc(),
                         Unpaid.step.desc()).limit(records)
+            last_unpaid = None
+            item = 0
+            for unpaid in reversed(unpaids):
+                if ( last_unpaid is None or
+                     unpaid.timestamp[:10] != last_unpaid.timestamp[:10]
+                   ):
+                    last_unpaid = unpaid
+                    item += 1
+            records -= item
+            unpaids = Unpaid.select().where(
+                            (Unpaid.source == SOURCE) &
+                            (Unpaid.currency == CURRENCY)
+                        ).order_by(Unpaid.work.desc(),
+                        Unpaid.step.desc()).limit(records)
+
     except peewee.DoesNotExist:
         print('do-something')
+    return records, unpaids
+
+def add_row_date(table, tag, delta, lines_show):
+    '''Row date'''
+    cols = [7, 11, 11, 8, 7, 5]
+    if lines_show % 2:
+        color1 = '[black on bright_black]'
     else:
-        last_unpaid = None
-        item = 0
-        delta = {}
-        for unpaid in reversed(unpaids):
-            item += 1
+        color1 = '[black on white]'
+    color2 = '[white on black]'
+    label = '─'
+    table.add_row(f"{color1}{delta['date']}",
+                  f"{color2}{cols[0] * label}",
+                  f"{color2}{cols[1] * label}",
+                  f"{color2}{cols[2] * label}",
+                  f"{color2}{cols[3] * label}",
+                  f"{color2}{cols[4] * label}",
+                  f"{color2}{cols[5] * label}")
 
-            if last_unpaid is None:
-                delta['timestamp'] = '0'
-                delta['±value'] = 0
-                delta['±usd'] = 0
-                last_delta = delta.copy()
-            else:
-                last_delta = delta.copy()
-                delta['timestamp'] = (
-                                datetime.strptime(unpaid.timestamp, TS_FMT) -
-                                datetime.strptime(last_unpaid.timestamp, TS_FMT)
-                            )
-                delta['±value'] = unpaid.value - last_unpaid.value
-                delta['±usd'] = unpaid.usd - last_unpaid.usd
-
-            tags_row(tag, last_unpaid, unpaid, last_delta, delta)
-            table.add_row(  f"{tag['timestamp']}{unpaid.timestamp}",
-                            f"{tag['±timestamp']}{delta['timestamp']}",
-                            f"{tag['value']}{unpaid.value:1.8f}",
-                            f"{tag['±value']}{delta['±value']:1.8f}",
-                            f"{tag['usd']}{unpaid.usd:05.2f}",
-                            f"{tag['±usd']}{delta['±usd']:05.2f}")
+def show_data(records, size_term):
+    '''Show time'''
+    timestamp = datetime.now().strftime(TS_FMT)
+    table = Table(show_header=True, header_style='bold white',
+                    box=box.SIMPLE, show_edge=False, expand=True,
+                    row_styles=['dim', 'none'], pad_edge=False)
+    add_columns(table)
+    tag = {}
+    if records == -1:
+        records = size_term['lines'] - 4 # 3 Lines of header + 1 of Footer
+    lines_show = records
+    tag['currency'] = '[cyan]'
+    records, unpaids = get_records(records)
+    last_unpaid = None
+    item = 0
+    delta = last_delta = {}
+    for unpaid in reversed(unpaids):
+        item += 1
+        if last_unpaid is None:
+            set_deltas_empty(unpaid, delta)
+            last_delta = delta.copy()
+        else:
+            last_delta = delta.copy()
+            set_deltas(last_unpaid, unpaid, last_delta, delta)
+        tags_row(tag, last_unpaid, unpaid, last_delta, delta)
+        if last_delta['date'] != delta['date'] or item == 1:
+            add_row_date(table, tag, delta, lines_show)
             lines_show -= 1
-            if item == unpaids.count():
-                diff_ts_now = (
-                                datetime.strptime(timestamp, TS_FMT) -
-                                datetime.strptime(unpaid.timestamp, TS_FMT)
-                            )
-                timestamp_obj = datetime.strptime(unpaid.timestamp, TS_FMT)
-                next_update['timestamp'] = timestamp_obj + timedelta(hours=4)
-                next_update['timestamp'] = next_update['timestamp'].replace(minute=1, second=0)
-            last_unpaid = unpaid
+        table.add_row(  f"{tag['time']}{delta['time']}",
+                        f"{tag['±timestamp']}{delta['ts_short']}",
+                        f"{tag['value']}{unpaid.value:1.8f}",
+                        f"{tag['±value']}{delta['±value']:1.8f}",
+                        f"{tag['±value']}{delta['±±value']:.0f}",
+                        f"{tag['usd']}{unpaid.usd:05.2f}",
+                        f"{tag['±usd']}{delta['±usd']:05.2f}")
+        lines_show -= 1
+        if item == unpaids.count():
+            diff_ts_now = (
+                            datetime.strptime(timestamp, TS_FMT) -
+                            datetime.strptime(unpaid.timestamp, TS_FMT)
+                        )
+            timestamp_obj = datetime.strptime(unpaid.timestamp, TS_FMT)
+            next_update['timestamp'] = timestamp_obj + timedelta(hours=4)
+            next_update['timestamp'] = next_update['timestamp'].replace(minute=1, second=0)
+        last_unpaid = unpaid
 
     print(chr(27) + "[2J")
     console = Console(record=True)
     tags_title(tag, diff_ts_now)
-    goal_msg = get_goal_msg(tag, last_unpaid)
+    #goal_msg = get_goal_msg(tag, last_unpaid, size_term)
     console.print(
             f"{tag['title']} ⛏️ BTC@"
-            f"[bold white]{timestamp}[not bold black] {tag['ok']}{goal_msg}",
+            f"[bold white]{timestamp}[not bold black] "
+            f"{tag['ok']}{get_goal_msg(tag, last_unpaid, size_term)}",
             style=tag['style'], justify='center'
         )
     console.print(table)
     if records != 0:
-        console.print()
-        while lines_show:
+        while lines_show > 0:
             lines_show -= 1
-            console.print()
+            console.print('')
     next_update['missing'] = next_update['timestamp'] - datetime.now()
     return next_update['missing'].total_seconds()
 
@@ -311,17 +392,21 @@ def get_data():
     '''Get data from miner'''
     cacpanel = minercac.CACPanel()
     btc, usd = cacpanel.wallet()
-    #if goal:
-    #    goal_pm = round((float(usd) / goal) * 100, 2)
-    #else:
-    #    goal_pm = 0
     save_data(btc, usd)
 
 def do_loop():
     '''Eternal Loop 4 forever & ever'''
+    setup_db()
+    size_term = get_columns_and_lines()
+    only_update, records = params()
     while True:
         get_data()
-        seconds = show_data()
+        if only_update:
+            timestamp = datetime.now().strftime(TS_FMT)
+            id_save = unpaid_save[SOURCE]
+            print(f'{timestamp} => {id_save}')
+            return
+        seconds = show_data(records, size_term)
         if records == 0:
             return
         try:
@@ -329,20 +414,4 @@ def do_loop():
         except KeyboardInterrupt:
             sys.exit(0)
 
-def params():
-    '''Set params'''
-    parser = argparse.ArgumentParser(
-        description='Get wallet balance from Cloudatcost mining process.'
-    )
-    parser.add_argument('-r', '--records', type=int, required=False,
-        default=-1, help='The number of last records to get (0 = All)')
-    args = parser.parse_args()
-    if args.records == -1:
-        _records = records
-    else:
-        _records = args.records
-    return _records
-
-columns, lines, records = setup()
-records = params()
 do_loop()
