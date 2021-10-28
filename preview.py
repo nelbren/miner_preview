@@ -32,7 +32,7 @@ next_update = {}
 
 
 def setup_db():
-    #"""Setup"""
+    """Setup"""
     models = [Unpaid]
     db.connect()
     db.create_tables(models)
@@ -122,7 +122,7 @@ def get_columns_and_lines():
 
 
 def add_columns(table):
-    """ 'Header"""
+    """'Header"""
     table.add_column(
         "ts", justify="center", style="white", no_wrap=True, max_width=10
     )
@@ -278,10 +278,10 @@ def set_deltas_empty(unpaid, delta):
     """Delta empty"""
     delta["timestamp"] = "0"
     delta["date"], delta["time"] = unpaid.timestamp.split(" ")
-    delta["±value"] = delta["±±value"] = delta["±usd"] = delta["±usd_sum"] = 0
-    delta["btc_diff"] = delta["usd_diff"] = delta["~value"] = delta[
-        "~count"
-    ] = 0
+    delta["±value"] = delta["±±value"] = 0
+    delta["±usd"] = delta["±usd_sum"] = 0
+    delta["btc_diff"] = delta["usd_diff"] = 0
+    delta["~value"] = delta["~count"] = 0
     delta["ts_short"] = "00:00"
 
 
@@ -308,7 +308,6 @@ def set_deltas(last_unpaid, unpaid, last_delta, delta):
     )
     delta["±usd"] = unpaid.usd - last_unpaid.usd
     delta["±usd_sum"] += delta["±usd"]
-    # print('±usd: ',delta['±usd'], '±usd_sum: ', delta['±usd_sum'])
     if unpaid.timestamp[:10] != last_unpaid.timestamp[:10]:
         delta["btc_diff"] = unpaid.value - delta["btc_first"]
         delta["usd_diff"] = unpaid.usd - delta["usd_first"]
@@ -365,7 +364,6 @@ def add_row_date(table, delta):
     color1 = "[black on white]"
     color2 = "[white on black]"
     if delta["~count"]:
-        print("~value: ", delta["~value"], "~count: ", delta["~count"])
         delta["~value"] /= delta["~count"]
     table.add_row(
         f"{color1}{delta['date']}",

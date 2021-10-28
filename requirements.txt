@@ -2,3 +2,5 @@ peewee
 rich
 requests
 imgkit
+black
+pylint
