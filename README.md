@@ -1,11 +1,16 @@
 # ⛏️ miner_preview
 
+[![](images/python.svg)](https://python.org/)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg?style=flat-square)](https://github.com/psf/black)
+[![](images/pylint.svg)](https://pylint.org/)
+[![Donate with Ethereum](https://en.cryptobadges.io/badge/small/0892c9b9b58ad5a7878d5dcd4da4ee72109c32c6)](https://en.cryptobadges.io/donate/0892c9b9b58ad5a7878d5dcd4da4ee72109c32c6)
+
 ### Get 💰 wallet 📈 balance from ☁️[Cloudatcost](https://www.cloudatcost.com/)  ⛏️ mining 🚧 process.
 
 ---
 
 ## 💻 Example of output
-![](miner_preview.png)
+![](images/miner_preview.png)
 
 ---
 

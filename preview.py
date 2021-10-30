@@ -8,6 +8,7 @@ import time
 import shutil
 import configparser
 import argparse
+from argparse import RawTextHelpFormatter
 from datetime import datetime, timedelta
 import imgkit
 from rich import box
@@ -69,8 +70,10 @@ def setup_html(save):
 
 def params():
     """Set params"""
+    eth_addr = "0x0892c9b9b58ad5a7878d5dcd4da4ee72109c32c6"
     parser = argparse.ArgumentParser(
-        description="Get wallet balance from Cloudatcost mining process."
+        description=f"Get wallet balance from Cloudatcost mining process.\nDonate ETH 👉 {eth_addr}",
+        formatter_class=RawTextHelpFormatter,
     )
     parser.add_argument(
         "-r",
@@ -87,13 +90,14 @@ def params():
         default="",
         help="HTML and JPG file to save the output",
     )
+    crontab = "1 2,6,10,14,18,22 * * * /usr/local/miner_preview/preview.py -ou"
     parser.add_argument(
         "-ou",
         "--only_update",
         action="store_true",
         default=False,
         dest="update",
-        help="Only update database (useful with crontab)",
+        help=f"Only update database, useful with crontab config 👇\n{crontab}",
     )
     args = parser.parse_args()
     return args.update, args.records, args.save

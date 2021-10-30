@@ -4,3 +4,4 @@ requests
 imgkit
 black
 pylint
+anybadge
