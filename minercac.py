@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 """ miner.py - get information from CAC
-    v0.1.1 - 2021-10-24 - nelbren@nelbren.com"""
+    v0.1.3 - 2021-10-30 - nelbren@nelbren.com
+    NOTE: 2FA code thanks to Isonium"""
 import re
 import os
 import sys
@@ -8,6 +9,7 @@ import pickle
 import configparser
 import tempfile
 import requests
+import pyotp
 
 
 class Error(Exception):
@@ -16,6 +18,14 @@ class Error(Exception):
 
 class CantGetCsrf(Error):
     """Raised when Can't get _csrf"""
+
+
+class CantGetAuth2FA(Error):
+    """Raised when Can't get Auth 2FA"""
+
+
+class MissingAuth2FA(Error):
+    """Raised when Missing Auth 2FA"""
 
 
 class CantGetUSDandBTC(Error):
@@ -45,6 +55,27 @@ class CACPanel:
     cookie = ".wallet_cloudatcost.cookie"
     logged = False
 
+    def auth_2fa(self, headers, page):
+        """Auth 2FA process"""
+        reg = r"(Two Factor Auth)"
+        match = re.findall(reg, page.content.decode("utf-8"))
+        if match:
+            if not self.code_2fa:
+                print(f"{TAG[0]} Missing CODE_2FA")
+                raise MissingAuth2FA
+            if DEBUG:
+                print("2FA -> ", end="")
+            url = self.url_base + "/auth"
+            totp = pyotp.TOTP(self.code_2fa)
+            data = {"authCode": totp.now(), "_csrf": self._csrf}
+            self.session.post(url, data=data, headers=headers)
+            page = self.session.get(self.url_base)
+            return page
+        if not self.code_2fa:
+            return page
+        print(f"{TAG[0]} Can't get Auth 2FA")
+        raise CantGetAuth2FA
+
     def login(self):
         """Login process"""
         if DEBUG:
@@ -69,6 +100,10 @@ class CACPanel:
         with open(self.cookie, "wb") as _file:
             pickle.dump(self.session.cookies, _file)
         page = self.session.get(self.url_base)
+        try:
+            page = self.auth_2fa(headers, page)
+        except MissingAuth2FA:
+            sys.exit(4)
         reg = r">(Miners)<"
         match = re.findall(reg, page.content.decode("utf-8"))
         self.logged = match
@@ -98,16 +133,22 @@ class CACPanel:
         config.read_file(open(path + "/" + filename))
         self.username = config.get("CAC_WALLET", "USERNAME")
         self.password = config.get("CAC_WALLET", "PASSWORD")
+        self.code_2fa = config.get("CAC_WALLET", "CODE_2FA", fallback="")
         self.session = requests.session()
         self.cookie = tempfile.gettempdir() + "/" + self.cookie
         if os.path.exists(self.cookie):
             if DEBUG:
-                print("Reusing 🍪-> ", end="")
+                print(f"Reusing 🍪 ({self.cookie})-> ", end="")
             with open(self.cookie, "rb") as _file:
                 self.session.cookies.update(pickle.load(_file))
-            page = self.session.get(self.url_base)
+            try:
+                page = self.session.get(self.url_base)
+            except requests.exceptions.ConnectionError:
+                print(f"Connection problem to {self.url_base}!")
+                sys.exit(2)
             reg = r">(Miners)<"
             match = re.findall(reg, page.content.decode("utf-8"))
+            self.logged = match
             debug(match)
             if match:
                 return
@@ -115,6 +156,8 @@ class CACPanel:
 
     def wallet(self):
         """Get Wallet information"""
+        if not self.logged:
+            return -1, -1
         if DEBUG:
             print("Wallet 💰-> ", end="")
         url = self.url_base + "/wallet"
@@ -126,7 +169,7 @@ class CACPanel:
             _usd = float(parse.groupdict()["usd"])
             _btc = float(parse.groupdict()["btc"])
         else:
-            print(f"{TAG[0]} Can't get get crypto info")
+            print(f"{TAG[0]} Can't get crypto info")
             raise CantGetUSDandBTC
         return _btc, _usd
 
@@ -139,8 +182,8 @@ if __name__ == "__main__":
     try:
         btc, usd = cacpanel.wallet()
     except CantGetCsrf:
-        print(f"{TAG[0]} Can't get _csrf")
+        sys.exit(3)
     except CantGetUSDandBTC:
-        print(f"{TAG[0]} Can't get crypto info")
+        sys.exit(5)
     else:
         print(f"BTC: {btc:1.8f} USD: {usd:05.2f}")

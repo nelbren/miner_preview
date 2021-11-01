@@ -48,17 +48,16 @@ MESSAGE = "PyLint Passed | " + MESSAGE
 logging.info(MESSAGE)
 
 # Define thresholds: <2=red, <4=orange <8=yellow <10=green
-thresholds = {2: 'red',
-              4: 'orange',
-              6: 'yellow',
-              10: 'green'}
+thresholds = {2: "red", 4: "orange", 6: "yellow", 10: "green"}
 
-badge = anybadge.Badge('pylint', final_score, thresholds=thresholds, value_format='%.2f')
-badge.write_badge('images/pylint.svg', overwrite=True)
+badge = anybadge.Badge(
+    "pylint", final_score, thresholds=thresholds, value_format="%.2f"
+)
+badge.write_badge("images/pylint.svg", overwrite=True)
 
-result = subprocess.run(['python', '-V'], stdout=subprocess.PIPE, check=True)
+result = subprocess.run(["python", "-V"], stdout=subprocess.PIPE, check=True)
 version = result.stdout.decode().split()[1]
-badge = anybadge.Badge('python', version, default_color='green')
-badge.write_badge('images/python.svg', overwrite=True)
+badge = anybadge.Badge("python", version, default_color="green")
+badge.write_badge("images/python.svg", overwrite=True)
 
 sys.exit(0)

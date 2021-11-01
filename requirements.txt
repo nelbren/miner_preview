@@ -5,3 +5,4 @@ imgkit
 black
 pylint
 anybadge
+pyotp
