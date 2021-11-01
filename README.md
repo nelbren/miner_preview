@@ -5,7 +5,7 @@
 [![](images/pylint.svg)](https://pylint.org/)
 [![Donate with Ethereum](https://en.cryptobadges.io/badge/micro/0x0892c9b9b58ad5a7878d5dcd4da4ee72109c32c6)](https://en.cryptobadges.io/donate/0x0892c9b9b58ad5a7878d5dcd4da4ee72109c32c6)
 
-### Get 💰 wallet 📈 balance from ☁️[Cloudatcost](https://www.cloudatcost.com/)  ⛏️ mining 🚧 process.
+### Get 💰 wallet 📈 balance from 💻[Ethermine](https://www.ethermine.org/) and ☁️[Cloudatcost](https://www.cloudatcost.com/) ⛏️ mining 🚧 process.
 
 ---
 
@@ -35,13 +35,26 @@
             cp secret.cfg.EXAMPLE .secret.cfg
             ```
     - Change the data inside of `.secret.cfg`
-        |Key|Value|Description|
-        |:--|:--|:--|
-        |**USERNAME**|your username|Credentials of access|
-        |**PASSWORD**|your password|Credentials of access|
-        |**CODE_2FA**|secret code 2FA|Credentials of access|
-        |**GOAL_USD**|amount of usd|Goal in dollars|
-        |**GOAL_BTC**|amount of btc|Goal in bitcoin|
+
+        - **ETHERMINE** (section)
+
+            |Key|Value|Description|
+            |:--|:--|:--|
+            |**ADDRESS**|your eth address|Ethereum Address|
+            |**GOAL_USD**|amount of usd|Goal in dollars|
+            |**GOAL_ETH**|amount of eth|Goal in ethereum|
+
+        - **CLOUDATCOST** (section)
+
+            |Key|Value|Description|
+            |:--|:--|:--|
+            |**USERNAME**|your username|Credentials of access|
+            |**PASSWORD**|your password|Credentials of access|
+            |**CODE_2FA**|secret code 2FA|Credentials of access|
+            |**GOAL_USD**|amount of usd|Goal in dollars|
+            |**GOAL_BTC**|amount of btc|Goal in bitcoin|
+
+
 
 3. **Install python and modules**
     

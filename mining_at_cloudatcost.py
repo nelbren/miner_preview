@@ -1,15 +1,15 @@
 #!/usr/bin/python3
-""" miner.py - get information from CAC
-    v0.1.3 - 2021-10-30 - nelbren@nelbren.com
-    NOTE: 2FA code thanks to Isonium"""
+""" mining_at_cloudatcost.py - get information from Cloudatcost.com
+    v0.1.4 - 2021-10-31 - nelbren@nelbren.com
+    NOTE: 2FA code thanks to Isonium """
 import re
 import os
 import sys
 import pickle
-import configparser
 import tempfile
 import requests
 import pyotp
+from config import get_config
 
 
 class Error(Exception):
@@ -37,15 +37,6 @@ def debug(is_ok):
     if DEBUG:
         tag = 1 if is_ok else 0
         print(f"{TAG[tag]} ", end="")
-
-
-def check_config(path, filename):
-    """Check if config file exist"""
-    if not os.path.exists(path + "/" + filename):
-        print(
-            f'Create the file "{filename}" using the template "secret.cfg.EXAMPLE"!'
-        )
-        sys.exit(1)
 
 
 class CACPanel:
@@ -126,14 +117,11 @@ class CACPanel:
             raise CantGetCsrf
 
     def __init__(self):
-        config = configparser.ConfigParser()
-        path = os.path.dirname(os.path.realpath(__file__))
-        filename = ".secret.cfg"
-        check_config(path, filename)
-        config.read_file(open(path + "/" + filename))
-        self.username = config.get("CAC_WALLET", "USERNAME")
-        self.password = config.get("CAC_WALLET", "PASSWORD")
-        self.code_2fa = config.get("CAC_WALLET", "CODE_2FA", fallback="")
+        # cfg = config.get_config()
+        cfg = get_config()
+        self.username = cfg["username"]
+        self.password = cfg["password"]
+        self.code_2fa = cfg["code_2fa"]
         self.session = requests.session()
         self.cookie = tempfile.gettempdir() + "/" + self.cookie
         if os.path.exists(self.cookie):
