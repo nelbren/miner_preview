@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 """ deltas_and_tags.py - set deltas and tags
-    v0.0.2 - 2021-11-02 - nelbren@nelbren.com"""
+    v0.0.3 - 2021-11-02 - nelbren@nelbren.com"""
 
 from datetime import datetime, timedelta
 from config import get_config
@@ -119,6 +119,7 @@ def get_goal_msg_item(tag, label, goal, value, item_cols):
     progress = "[bold][white]" + show_bars * "■"
     progress_bar = f"{progress}{missing}"
     tag_pm(tag, goal_pm)
+    tag["goal_pm"] = goal_pm
     goal_msg = (
         f"🎯{tag['pm']}{goal_pm:06.2f}%{label}"
         f"{tag['title']}[{progress_bar}{tag['title']}]"
@@ -150,9 +151,11 @@ def get_goal_msg(source, currency, tag, unpaid, size_term):
     goal_msg_detail = get_goal_msg_item(
         tag, "USD", goal_usd, unpaid.usd, items_cols
     )
+    tag[f"{source}_goal_pm_usd"] = tag["goal_pm"]
     goal_msg_detail += get_goal_msg_item(
         tag, currency.upper(), goal_val, unpaid.value, items_cols
     )
+    tag[f"{source}_goal_pm_val"] = tag["goal_pm"]
     return f"|{goal_msg_detail} "
 
 

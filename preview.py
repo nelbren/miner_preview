@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 """ preview.py - show information from cloudatcost.com and ethermine.org
-    v0.2.0 - 2021-11-02 - nelbren@nelbren.com"""
+    v0.2.1 - 2021-11-02 - nelbren@nelbren.com"""
 import os
 import re
 import sys
@@ -74,17 +74,17 @@ def setup_html(html):
     setup_jpg(html)
 
 
-def mail_data(params, numbers):
+def mail_data(params, numbers, tag):
     """Mail"""
 
     msg = MIMEMultipart()
     msg["From"] = "crypto@npr3s.com"
     msg["To"] = "nelbren@gmail.com"
-    subject = "⛏️ "
+    subject = ""
     if numbers[0]:
-        subject += f"E: {numbers[0]} "
+        subject += f"⛏️ E{numbers[0]} 🎯{tag['ethermine_goal_pm_usd']}% "
     if numbers[1]:
-        subject += f"B: {numbers[1]}"
+        subject += f"⛏️ B{numbers[1]} 🎯{tag['cloudatcost_goal_pm_usd']}%"
     msg["Subject"] = subject
 
     name = "miner_preview.jpg"
@@ -296,6 +296,7 @@ def show_data(console, params, unpaid_save, size_term):
         "unpaid_save": unpaid_save,
     }
     # console = Console(record=True)
+    tag = {}
     for source in sources:
         if source == "cloudatcost":
             currency = "btc"
@@ -304,7 +305,6 @@ def show_data(console, params, unpaid_save, size_term):
         table = make_table()
         iterate_on_records(source, currency, table, params, data)
         timestamp = datetime.now().strftime(TS_FMT)
-        tag = {}
         tags_title(tag, data["last_unpaid"], timestamp)
         size_term = get_columns_and_lines()
         console.print(
@@ -324,7 +324,7 @@ def show_data(console, params, unpaid_save, size_term):
         console.save_html(html)
         setup_html(html)
     next_update["missing"] = next_update["timestamp"] - datetime.now()
-    return next_update["missing"].total_seconds()
+    return next_update["missing"].total_seconds(), tag
 
 
 def save_data(source, currency, value, usd):
@@ -431,9 +431,9 @@ def do_loop():
             id_save = unpaid_save
             print(f"{timestamp} => {id_save}")
             return
-        seconds = show_data(console, params, unpaid_save, size_term)
+        seconds, tag = show_data(console, params, unpaid_save, size_term)
         if params["mail_to"]:
-            mail_data(params, numbers)
+            mail_data(params, numbers, tag)
         if params["records"] == 0 or params["save_dir"] or params["mail_to"]:
             return
         try:

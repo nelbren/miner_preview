@@ -4,6 +4,7 @@
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg?style=flat-square)](https://github.com/psf/black)
 [![](images/pylint.svg)](https://pylint.org/)
 [![Donate with Ethereum](https://en.cryptobadges.io/badge/micro/0x0892c9b9b58ad5a7878d5dcd4da4ee72109c32c6)](https://en.cryptobadges.io/donate/0x0892c9b9b58ad5a7878d5dcd4da4ee72109c32c6)
+[![](images/updated.svg)](https://nelbren.com/)
 
 ### Get 💰 wallet 📈 balance from 💻[Ethermine](https://www.ethermine.org/) and ☁️[Cloudatcost](https://www.cloudatcost.com/) ⛏️ mining 🚧 process.
 

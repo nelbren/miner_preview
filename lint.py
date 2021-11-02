@@ -5,6 +5,7 @@ import sys
 import argparse
 import logging
 import subprocess
+from datetime import datetime
 import anybadge
 from pylint.lint import Run
 
@@ -59,5 +60,10 @@ result = subprocess.run(["python", "-V"], stdout=subprocess.PIPE, check=True)
 version = result.stdout.decode().split()[1]
 badge = anybadge.Badge("python", version, default_color="green")
 badge.write_badge("images/python.svg", overwrite=True)
+
+TS_FMT = "%Y-%m-%d %H:%M:%S"
+timestamp = datetime.now().strftime(TS_FMT)
+badge = anybadge.Badge("updated", timestamp, default_color="green")
+badge.write_badge("images/updated.svg", overwrite=True)
 
 sys.exit(0)
