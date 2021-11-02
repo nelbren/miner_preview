@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 """ deltas_and_tags.py - set deltas and tags
-    v0.0.1 - 2021-10-31 - nelbren@nelbren.com"""
+    v0.0.2 - 2021-11-02 - nelbren@nelbren.com"""
 
 from datetime import datetime, timedelta
 from config import get_config
@@ -32,7 +32,7 @@ def set_tag_delta(value1, value2, color):
 
 def set_option_value(value1, value2):
     """Set tag value"""
-    if value1 == 0:
+    if value1 == 0 or value1 == value2:
         color, label = "white", "="
     elif value1 > value2:
         color, label = "green", "^"

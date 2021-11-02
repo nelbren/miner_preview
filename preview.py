@@ -1,15 +1,18 @@
 #!/usr/bin/python3
 """ preview.py - show information from cloudatcost.com and ethermine.org
-    v0.1.9 - 2021-10-31 - nelbren@nelbren.com"""
+    v0.2.0 - 2021-11-02 - nelbren@nelbren.com"""
 import os
 import re
 import sys
 import shutil
 import argparse
+import tempfile
+import smtplib
+from email.mime.application import MIMEApplication
+from email.mime.multipart import MIMEMultipart
 from argparse import RawTextHelpFormatter
 from datetime import datetime, timedelta
 import imgkit
-from rich.console import Console
 import peewee
 import mining_at_cloudatcost
 import mining_at_ethermine
@@ -29,6 +32,7 @@ from table import (
     add_last_row,
     show_progress,
 )
+import big_text
 
 TS_FMT = "%Y-%m-%d %H:%M:%S"
 next_update = {}
@@ -41,11 +45,11 @@ def setup_db():
     db.create_tables(models)
 
 
-def setup_jpg(save):
+def setup_jpg(html):
     """Setup JPG"""
-    save_html2 = os.path.splitext(save)[0] + "_temp.html"
-    shutil.copyfile(save, save_html2)
-    with open(save_html2, "r+") as _file:
+    html2 = os.path.splitext(html)[0] + "_temp.html"
+    shutil.copyfile(html, html2)
+    with open(html2, "r+") as _file:
         text = _file.read()
         text = re.sub("⛏️", "&nbsp;", text)
         text = re.sub("🎯", "&nbsp;&nbsp;", text)
@@ -53,28 +57,56 @@ def setup_jpg(save):
         _file.write(text)
         _file.truncate()
     options = {"encoding": "latin_1", "quiet": ""}
-    save_img = os.path.splitext(save)[0] + ".jpg"
-    imgkit.from_file(save_html2, save_img, options=options)
-    os.unlink(save_html2)
+    img = os.path.splitext(html)[0] + ".jpg"
+    imgkit.from_file(html2, img, options=options)
+    os.unlink(html2)
 
 
-def setup_html(save):
+def setup_html(html):
     """Setup HTML"""
-    with open(save, "r+") as _file:
+    with open(html, "r+") as _file:
         text = _file.read()
         pre = "pre { color: #ffffff; background-color: #000000; font-size: 41px; }"
         text = re.sub("</style>", f"{pre}\n</style>", text)
         _file.seek(0)
         _file.write(text)
         _file.truncate()
-    setup_jpg(save)
+    setup_jpg(html)
+
+
+def mail_data(params, numbers):
+    """Mail"""
+
+    msg = MIMEMultipart()
+    msg["From"] = "crypto@npr3s.com"
+    msg["To"] = "nelbren@gmail.com"
+    subject = "⛏️ "
+    if numbers[0]:
+        subject += f"E: {numbers[0]} "
+    if numbers[1]:
+        subject += f"B: {numbers[1]}"
+    msg["Subject"] = subject
+
+    name = "miner_preview.jpg"
+    filename = params["save_dir"] + "/" + name
+    with open(filename, "rb") as _file:
+        part = MIMEApplication(_file.read(), Name=name)
+    part["Content-Decomposition"] = f"attachment, filename={name}"
+    msg.attach(part)
+
+    smtp = smtplib.SMTP("localhost")
+    smtp.sendmail(msg["From"], msg["To"], msg.as_string())
+    smtp.close()
 
 
 def get_params():
     """Get params"""
     eth_addr = "0x0892c9b9b58ad5a7878d5dcd4da4ee72109c32c6"
     parser = argparse.ArgumentParser(
-        description=f"Get wallet balance from Cloudatcost mining process.\nDonate ETH 👉 {eth_addr}",
+        description=(
+            "Get wallet balance from Ethermine and Cloudatcost "
+            f"mining process.\nDonate ETH 👉 {eth_addr}"
+        ),
         formatter_class=RawTextHelpFormatter,
     )
     parser.add_argument(
@@ -102,11 +134,11 @@ def get_params():
         help="The number of last records to get (0 = All)",
     )
     parser.add_argument(
-        "-s",
-        "--save",
+        "-sd",
+        "--save_dir",
         required=False,
         default="",
-        help="HTML and JPG file to save the output",
+        help="Directory to save the output (HTML and JPG)",
     )
     crontab = "1 2,6,10,14,18,22 * * * /usr/local/miner_preview/preview.py -ou"
     parser.add_argument(
@@ -117,15 +149,34 @@ def get_params():
         dest="only_update",
         help=f"Only update database, useful with crontab config 👇\n{crontab}",
     )
+    parser.add_argument(
+        "-ob",
+        "--only-big",
+        action="store_true",
+        default=False,
+        dest="only_big",
+        help="Only show big text",
+    )
+    parser.add_argument(
+        "-m",
+        "--mail-to",
+        required=False,
+        default="",
+        help="Mail to this account",
+    )
     args = parser.parse_args()
     if not args.ethermine and not args.cloudatcost:
         args.ethermine = args.cloudatcost = True
+    if args.mail_to:
+        args.save_dir = tempfile.gettempdir()
     return {
+        "only_big": args.only_big,
         "ethermine": args.ethermine,
         "cloudatcost": args.cloudatcost,
         "only_update": args.only_update,
         "records": args.records,
-        "save": args.save,
+        "save_dir": args.save_dir,
+        "mail_to": args.mail_to,
     }
 
 
@@ -217,7 +268,7 @@ def iterate_on_records(source, currency, table, params, data):
     data["lines_show"] -= 4  # 1 Summary + 3 Header
 
 
-def show_data(params, unpaid_save, size_term):
+def show_data(console, params, unpaid_save, size_term):
     """Show time"""
     if params["records"] == -1:
         params["records"] = size_term["lines"]
@@ -244,6 +295,7 @@ def show_data(params, unpaid_save, size_term):
         "last_unpaid": None,
         "unpaid_save": unpaid_save,
     }
+    # console = Console(record=True)
     for source in sources:
         if source == "cloudatcost":
             currency = "btc"
@@ -251,7 +303,6 @@ def show_data(params, unpaid_save, size_term):
             currency = "eth"
         table = make_table()
         iterate_on_records(source, currency, table, params, data)
-        console = Console(record=True)
         timestamp = datetime.now().strftime(TS_FMT)
         tag = {}
         tags_title(tag, data["last_unpaid"], timestamp)
@@ -268,9 +319,10 @@ def show_data(params, unpaid_save, size_term):
         while data["lines_show"] > 0:
             data["lines_show"] -= 1
             console.print("")
-    if params["save"]:
-        console.save_html(params["save"])
-        setup_html(params["save"])
+    if params["save_dir"]:
+        html = params["save_dir"] + "/miner_preview.html"
+        console.save_html(html)
+        setup_html(html)
     next_update["missing"] = next_update["timestamp"] - datetime.now()
     return next_update["missing"].total_seconds()
 
@@ -311,18 +363,58 @@ def save_data(source, currency, value, usd):
     return unpaid_save
 
 
+def show_big():
+    """Show big"""
+    datas = [
+        {"source": "ethermine", "currency": "eth"},
+        {"source": "cloudatcost", "currency": "btc"},
+    ]
+    for data in datas:
+        source = data["source"]
+        currency = data["currency"]
+        unpaids = (
+            Unpaid.select()
+            .where((Unpaid.source == source) & (Unpaid.currency == currency))
+            .order_by(Unpaid.work.desc(), Unpaid.step.desc())
+            .limit(2)
+        )
+        if len(unpaids) > 1:
+            data["number"] = unpaids[0].usd
+        if len(unpaids) == 2:
+            if unpaids[0].usd == unpaids[1].usd:
+                data["tag"] = "="
+                data["color"] = "white"
+            elif unpaids[0].usd > unpaids[1].usd:
+                data["tag"] = "^"
+                data["color"] = "green"
+            else:
+                data["tag"] = "v"
+                data["color"] = "red"
+        else:
+            data["tag"] = "="
+    tags = {"number1": datas[0]["tag"], "number2": datas[1]["tag"]}
+    colors = {
+        "normal": "black",
+        "number1": datas[0]["color"],
+        "number2": datas[1]["color"],
+    }
+    usd_etm, usd_cac = datas[0]["number"], datas[1]["number"]
+    console, numbers = big_text.show_big(usd_etm, usd_cac, tags, colors)
+    return console, numbers
+
+
 def get_data():
     """Get data from miner"""
     source, currency = "ethermine", "eth"
     etmpanel = mining_at_ethermine.ETMPanel()
-    eth, usd = etmpanel.wallet()
-    unpaid_save_etm = save_data(source, currency, eth, usd)
+    eth, usd_etm = etmpanel.wallet()
+    unpaid_save_etm = save_data(source, currency, eth, usd_etm)
     source, currency = "cloudatcost", "btc"
     cacpanel = mining_at_cloudatcost.CACPanel()
-    btc, usd = cacpanel.wallet()
-    unpaid_save_cac = save_data(source, currency, btc, usd)
-
-    return {"etm": unpaid_save_etm, "cac": unpaid_save_cac}
+    btc, usd_cac = cacpanel.wallet()
+    unpaid_save_cac = save_data(source, currency, btc, usd_cac)
+    console, numbers = show_big()
+    return console, numbers, {"etm": unpaid_save_etm, "cac": unpaid_save_cac}
 
 
 def do_loop():
@@ -331,14 +423,18 @@ def do_loop():
     size_term = get_columns_and_lines()
     params = get_params()
     while True:
-        unpaid_save = get_data()
+        console, numbers, unpaid_save = get_data()
+        if params["only_big"]:
+            return
         if params["only_update"]:
             timestamp = datetime.now().strftime(TS_FMT)
             id_save = unpaid_save
             print(f"{timestamp} => {id_save}")
             return
-        seconds = show_data(params, unpaid_save, size_term)
-        if params["records"] == 0 or params["save"]:
+        seconds = show_data(console, params, unpaid_save, size_term)
+        if params["mail_to"]:
+            mail_data(params, numbers)
+        if params["records"] == 0 or params["save_dir"] or params["mail_to"]:
             return
         try:
             show_progress(seconds, next_update)
