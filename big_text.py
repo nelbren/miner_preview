@@ -297,5 +297,5 @@ if __name__ == "__main__":
     else:
         _tags["number1"] = "v"
         _colors["number1"] = "red"
-    console, _numbers = show_big(NUMBER1, NUMBER2, _tags, _colors)
-    #print(_numbers)
+    _console, _numbers = show_big(NUMBER1, NUMBER2, _tags, _colors)
+    # print(_numbers)

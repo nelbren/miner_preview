@@ -32,7 +32,7 @@ def set_tag_delta(value1, value2, color):
 
 def set_option_value(value1, value2):
     """Set tag value"""
-    if value1 == 0 or value1 == value2:
+    if value1 in [0, value2]:
         color, label = "white", "="
     elif value1 > value2:
         color, label = "green", "^"
