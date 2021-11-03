@@ -55,6 +55,12 @@
             |**GOAL_USD**|amount of usd|Goal in dollars|
             |**GOAL_BTC**|amount of btc|Goal in bitcoin|
 
+        - **MAIL** (section)
+
+            |Key|Value|Description|
+            |:--|:--|:--|
+            |**FROM**|your sender mail|The sender's email|
+            |**TO**|your receive mail|The recipient's address|
 
 
 3. **Install python and modules**

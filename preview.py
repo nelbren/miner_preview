@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 """ preview.py - show information from cloudatcost.com and ethermine.org
-    v0.2.1 - 2021-11-02 - nelbren@nelbren.com"""
+    v0.2.2 - 2021-11-02 - nelbren@nelbren.com"""
 import os
 import re
 import sys
@@ -32,6 +32,7 @@ from table import (
     add_last_row,
     show_progress,
 )
+from config import get_config
 import big_text
 
 TS_FMT = "%Y-%m-%d %H:%M:%S"
@@ -76,10 +77,13 @@ def setup_html(html):
 
 def mail_data(params, numbers, tag):
     """Mail"""
-
+    cfg = get_config()
+    if not cfg["mail_from"] or not cfg["mail_to"]:
+        print("Please set the FROM and TO fields of MAIL!")
+        sys.exit(0)
     msg = MIMEMultipart()
-    msg["From"] = "crypto@npr3s.com"
-    msg["To"] = "nelbren@gmail.com"
+    msg["From"] = cfg["mail_from"]
+    msg["To"] = cfg["mail_to"]
     subject = ""
     if numbers[0]:
         subject += f"⛏️ E{numbers[0]} 🎯{tag['ethermine_goal_pm_usd']}% "
@@ -102,24 +106,26 @@ def mail_data(params, numbers, tag):
 def get_params():
     """Get params"""
     eth_addr = "0x0892c9b9b58ad5a7878d5dcd4da4ee72109c32c6"
+    email = "nelbren@nelbren.com"
     parser = argparse.ArgumentParser(
         description=(
             "Get wallet balance from Ethermine and Cloudatcost "
             f"mining process.\nDonate ETH 👉 {eth_addr}"
+            f"\nContact email 👉{email}"
         ),
         formatter_class=RawTextHelpFormatter,
     )
     parser.add_argument(
-        "-only-cac",
-        "--only-cloudatcost",
+        "-c",
+        "--cloudatcost",
         action="store_true",
         default=False,
         dest="cloudatcost",
         help="Only show cloudatcost info",
     )
     parser.add_argument(
-        "-only-etm",
-        "--only-ethermine",
+        "-e",
+        "--ethermine",
         action="store_true",
         default=False,
         dest="ethermine",
@@ -134,49 +140,49 @@ def get_params():
         help="The number of last records to get (0 = All)",
     )
     parser.add_argument(
-        "-sd",
+        "-s",
         "--save_dir",
         required=False,
         default="",
         help="Directory to save the output (HTML and JPG)",
     )
-    crontab = "1 2,6,10,14,18,22 * * * /usr/local/miner_preview/preview.py -ou"
+    crontab = "1 2,6,10,14,18,22 * * * /path/preview.py -u"
     parser.add_argument(
-        "-ou",
-        "--only_update",
+        "-u",
+        "--update",
         action="store_true",
         default=False,
-        dest="only_update",
-        help=f"Only update database, useful with crontab config 👇\n{crontab}",
+        dest="update",
+        help=f"Only update database, crontab 👇\n{crontab}",
     )
     parser.add_argument(
-        "-ob",
-        "--only-big",
+        "-b",
         action="store_true",
         default=False,
-        dest="only_big",
+        dest="big",
         help="Only show big text",
     )
     parser.add_argument(
         "-m",
-        "--mail-to",
-        required=False,
-        default="",
-        help="Mail to this account",
+        "--mail",
+        action="store_true",
+        default=False,
+        dest="mail",
+        help=f"Send an email with the image attachment, crontab 👇\n{crontab}",
     )
     args = parser.parse_args()
     if not args.ethermine and not args.cloudatcost:
         args.ethermine = args.cloudatcost = True
-    if args.mail_to:
+    if args.mail:
         args.save_dir = tempfile.gettempdir()
     return {
-        "only_big": args.only_big,
+        "big": args.big,
         "ethermine": args.ethermine,
         "cloudatcost": args.cloudatcost,
-        "only_update": args.only_update,
+        "update": args.update,
         "records": args.records,
         "save_dir": args.save_dir,
-        "mail_to": args.mail_to,
+        "mail": args.mail,
     }
 
 
@@ -424,17 +430,17 @@ def do_loop():
     params = get_params()
     while True:
         console, numbers, unpaid_save = get_data()
-        if params["only_big"]:
+        if params["big"]:
             return
-        if params["only_update"]:
+        if params["update"]:
             timestamp = datetime.now().strftime(TS_FMT)
             id_save = unpaid_save
             print(f"{timestamp} => {id_save}")
             return
         seconds, tag = show_data(console, params, unpaid_save, size_term)
-        if params["mail_to"]:
+        if params["mail"]:
             mail_data(params, numbers, tag)
-        if params["records"] == 0 or params["save_dir"] or params["mail_to"]:
+        if params["records"] == 0 or params["save_dir"] or params["mail"]:
             return
         try:
             show_progress(seconds, next_update)

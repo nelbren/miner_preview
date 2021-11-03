@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 """ config.py - get configuration
-    v0.0.1 - 2021-10-31 - nelbren@nelbren.com """
+    v0.0.2 - 2021-11-02 - nelbren@nelbren.com """
 import os
 import sys
 import configparser
@@ -32,6 +32,9 @@ def get_config():
     address = config.get(section, "ADDRESS", fallback="")
     etm_goal_usd = config.get(section, "GOAL_USD", fallback=None)
     etm_goal_btc = config.get(section, "GOAL_ETH", fallback=None)
+    section = "MAIL"
+    mail_from = config.get(section, "FROM", fallback="")
+    mail_to = config.get(section, "TO", fallback="")
     return {
         "username": username,
         "password": password,
@@ -41,4 +44,6 @@ def get_config():
         "address": address,
         "etm_goal_usd": etm_goal_usd,
         "etm_goal_btc": etm_goal_btc,
+        "mail_from": mail_from,
+        "mail_to": mail_to
     }
