@@ -45,5 +45,5 @@ def get_config():
         "etm_goal_usd": etm_goal_usd,
         "etm_goal_btc": etm_goal_btc,
         "mail_from": mail_from,
-        "mail_to": mail_to
+        "mail_to": mail_to,
     }
