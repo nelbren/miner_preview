@@ -172,7 +172,11 @@ def get_params():
     )
     args = parser.parse_args()
     if not args.ethermine and not args.cloudatcost:
-        args.ethermine = args.cloudatcost = True
+        cfg = get_config()
+        if cfg['address']:
+            args.ethermine = True
+        if cfg['username']:
+            args.cloudatcost = True
     if args.mail:
         args.save_dir = tempfile.gettempdir()
     return {
@@ -335,6 +339,8 @@ def show_data(console, params, unpaid_save, size_term):
 
 def save_data(source, currency, value, usd):
     """Save record"""
+    if value == -1:
+        return 0
     try:
         unpaid = (
             Unpaid.select()

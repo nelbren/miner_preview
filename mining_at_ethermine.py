@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 """ mining_at_ethermine.py - get information from ethermine.org
-    v0.0.4 - 2021-10-31 - nelbren@nelbren.com """
+    v0.0.5 - 2021-11-04 - nelbren@nelbren.com """
 import sys
 import requests
 from config import get_config
@@ -28,8 +28,9 @@ class ETMPanel:
     def wallet(self):
         """Get Miner information"""
         if not self.address:
-            print(f"{TAG[0]} Can't get crypto info")
-            raise CantGetUSDandETH
+            return -1, -1
+            #print(f"{TAG[0]} Can't get crypto info")
+            #raise CantGetUSDandETH
         url = self.url_base + f"/miner/{self.address}/currentStats"
         json = requests.get(url).json()
         unpaid = json["data"]["unpaid"]
