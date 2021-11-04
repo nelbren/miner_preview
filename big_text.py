@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 """ big_text.py - show custom big numbers
-    v0.0.1 - 2021-11-02 - nelbren@nelbren.com"""
+    v0.0.2 - 2021-11-03 - nelbren@nelbren.com"""
 from rich.console import Console
 
 no0 = [
@@ -44,13 +44,13 @@ no3 = [
     [0, 0, 0, 0, 0, 0, 0, 0],
 ]
 no4 = [
-    [0, 0, 0, 2, 1, 0, 0, 0],
-    [0, 2, 1, 3, 1, 0, 0, 0],
-    [1, 3, 0, 0, 1, 0, 0, 0],
+    [0, 0, 0, 0, 2, 1, 0, 0],
+    [0, 0, 2, 1, 3, 1, 0, 0],
+    [2, 1, 3, 0, 0, 1, 0, 0],
     [1, 1, 1, 1, 1, 1, 1, 0],
-    [0, 0, 0, 0, 1, 0, 0, 0],
-    [0, 0, 0, 0, 1, 0, 0, 0],
-    [0, 0, 0, 0, 1, 0, 0, 0],
+    [0, 0, 0, 0, 0, 1, 0, 0],
+    [0, 0, 0, 0, 0, 1, 0, 0],
+    [0, 0, 0, 0, 0, 1, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 0],
 ]
 no5 = [
@@ -288,7 +288,7 @@ if __name__ == "__main__":
     from random import randint
 
     NUMBER1 = 10.97
-    NUMBER2 = 100.99
+    NUMBER2 = 140.99
     _tags = {"number2": "^"}
     _colors = {"normal": "black", "number2": "green"}
     if randint(0, 1):

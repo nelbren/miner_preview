@@ -6,3 +6,9 @@ black
 pylint
 anybadge
 pyotp
+dash
+dash_bootstrap_components
+pandas
+apscheduler
+gunicorn
+eventlet==0.30.2

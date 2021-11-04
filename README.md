@@ -81,7 +81,3 @@
    - Send suggestions, comments, etc. to: nelbren@nelbren.com
 
 ---
-
-### 🔜 **TODO:**
-- [ ] Graph from data
-- [ ] Others reports
