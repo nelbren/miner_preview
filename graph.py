@@ -21,13 +21,14 @@ c = conn.cursor()
 DATAFRAME = None
 EACH_HOURS = 4
 
+
 def get_new_data():
     """Updates the global variable 'DATAFRAME' with new data"""
-    #print(datetime.datetime.now(), "get_new_data - begin")
+    # print(datetime.datetime.now(), "get_new_data - begin")
     dataframe = pd.read_sql("SELECT * FROM unpaid", conn)
     dataframe = dataframe[["source", "currency", "timestamp", "usd", "value"]]
     dataframe.head(1)
-    #print(datetime.datetime.now(), "get_new_data - end")
+    # print(datetime.datetime.now(), "get_new_data - end")
     return dataframe
 
 
