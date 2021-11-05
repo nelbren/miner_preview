@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 """ config.py - get configuration
-    v0.0.2 - 2021-11-02 - nelbren@nelbren.com """
+    v0.0.3 - 2021-11-05 - nelbren@nelbren.com """
 import os
 import sys
 import configparser
@@ -21,7 +21,7 @@ def get_config():
     path = os.path.dirname(os.path.realpath(__file__))
     filename = ".secret.cfg"
     check_config(path, filename)
-    config.read_file(open(path + "/" + filename))
+    config.read(path + "/" + filename)
     section = "CLOUDATCOST"
     username = config.get(section, "USERNAME")
     password = config.get(section, "PASSWORD")

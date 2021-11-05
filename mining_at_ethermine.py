@@ -29,8 +29,8 @@ class ETMPanel:
         """Get Miner information"""
         if not self.address:
             return -1, -1
-            #print(f"{TAG[0]} Can't get crypto info")
-            #raise CantGetUSDandETH
+            # print(f"{TAG[0]} Can't get crypto info")
+            # raise CantGetUSDandETH
         url = self.url_base + f"/miner/{self.address}/currentStats"
         json = requests.get(url).json()
         unpaid = json["data"]["unpaid"]

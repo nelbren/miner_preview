@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 """ preview.py - show information from cloudatcost.com and ethermine.org
-    v0.2.2 - 2021-11-02 - nelbren@nelbren.com"""
+    v0.2.3 - 2021-11-05 - nelbren@nelbren.com"""
 import os
 import re
 import sys
@@ -50,7 +50,7 @@ def setup_jpg(html):
     """Setup JPG"""
     html2 = os.path.splitext(html)[0] + "_temp.html"
     shutil.copyfile(html, html2)
-    with open(html2, "r+") as _file:
+    with open(html2, "r+", encoding="utf-8") as _file:
         text = _file.read()
         text = re.sub("⛏️", "&nbsp;", text)
         text = re.sub("🎯", "&nbsp;&nbsp;", text)
@@ -65,7 +65,7 @@ def setup_jpg(html):
 
 def setup_html(html):
     """Setup HTML"""
-    with open(html, "r+") as _file:
+    with open(html, "r+", encoding="utf-8") as _file:
         text = _file.read()
         pre = "pre { color: #ffffff; background-color: #000000; font-size: 41px; }"
         text = re.sub("</style>", f"{pre}\n</style>", text)
@@ -173,9 +173,9 @@ def get_params():
     args = parser.parse_args()
     if not args.ethermine and not args.cloudatcost:
         cfg = get_config()
-        if cfg['address']:
+        if cfg["address"]:
             args.ethermine = True
-        if cfg['username']:
+        if cfg["username"]:
             args.cloudatcost = True
     if args.mail:
         args.save_dir = tempfile.gettempdir()
@@ -390,7 +390,7 @@ def show_big():
             .order_by(Unpaid.work.desc(), Unpaid.step.desc())
             .limit(2)
         )
-        if len(unpaids) > 1:
+        if len(unpaids) >= 1:
             data["number"] = unpaids[0].usd
         if len(unpaids) == 2:
             if unpaids[0].usd == unpaids[1].usd:
@@ -404,6 +404,7 @@ def show_big():
                 data["color"] = "red"
         else:
             data["tag"] = "="
+            data["color"] = "white"
     tags = {"number1": datas[0]["tag"], "number2": datas[1]["tag"]}
     colors = {
         "normal": "black",
