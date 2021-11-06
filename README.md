@@ -68,12 +68,12 @@
     
     - Install modules
         ```bash
-        install.bat.bash
+        install.bash.bat
         ```
 
 4. **Run the script**
     ```bash
-    python preview.py
+    python3 preview.py
     ```
 
 5. **Feedback:** 

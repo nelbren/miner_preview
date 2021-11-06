@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 """ big_text.py - show custom big numbers
-    v0.0.2 - 2021-11-03 - nelbren@nelbren.com"""
+    v0.0.3 - 2021-11-06 - nelbren@nelbren.com"""
 from rich.console import Console
 
 no0 = [
@@ -37,7 +37,7 @@ no3 = [
     [2, 1, 1, 1, 1, 2, 0, 0],
     [1, 3, 0, 0, 3, 1, 0, 0],
     [0, 0, 0, 0, 2, 1, 0, 0],
-    [0, 0, 0, 1, 1, 0, 0, 0],
+    [0, 0, 1, 1, 1, 0, 0, 0],
     [0, 0, 0, 0, 3, 1, 0, 0],
     [1, 2, 0, 0, 2, 1, 0, 0],
     [3, 1, 1, 1, 1, 3, 0, 0],
@@ -255,25 +255,25 @@ def big_line(console, text, color):
     console.print()
 
 
-def show_big(number1, number2, tags, colors):
+def show_big(usd, tags, colors):
     """Show big numbers"""
     console = Console(record=True)
     color0 = colors["normal"]
 
-    if number1:
-        tag1 = tags["number1"]
-        color1 = colors["number1"]
-        n1_formated = f"{tag1}${number1:7.2f}"
+    if "usd_ethermine" in usd:
+        tag1 = tags["usd_ethermine"]
+        color1 = colors["usd_ethermine"]
+        n1_formated = f"{tag1}${usd['usd_ethermine']:7.2f}"
         big_line(console, n1_formated, color0)
         big_line(console, n1_formated, color1)
         big_text(console, n1_formated, color1)
     else:
         n1_formated = ""
 
-    if number2:
-        tag2 = tags["number2"]
-        color2 = colors["number2"]
-        n2_formated = f"{tag2}${number2:7.2f}"
+    if "usd_cloudatcost" in usd:
+        tag2 = tags["usd_cloudatcost"]
+        color2 = colors["usd_cloudatcost"]
+        n2_formated = f"{tag2}${usd['usd_cloudatcost']:7.2f}"
         big_line(console, n2_formated, color0)
         big_line(console, n2_formated, color2)
         big_text(console, n2_formated, color2)
@@ -287,15 +287,16 @@ def show_big(number1, number2, tags, colors):
 if __name__ == "__main__":
     from random import randint
 
-    NUMBER1 = 10.97
-    NUMBER2 = 140.99
-    _tags = {"number2": "^"}
-    _colors = {"normal": "black", "number2": "green"}
+    _usd = {}
+    _usd["usd_ethermine"] = 10.97
+    _usd["usd_cloudatcost"] = 140.99
+    _tags = {"usd_cloudatcost": "^"}
+    _colors = {"normal": "black", "usd_cloudatcost": "green"}
     if randint(0, 1):
-        _tags["number1"] = "="
-        _colors["number1"] = "white"
+        _tags["usd_ethermine"] = "="
+        _colors["usd_ethermine"] = "white"
     else:
-        _tags["number1"] = "v"
-        _colors["number1"] = "red"
-    _console, _numbers = show_big(NUMBER1, NUMBER2, _tags, _colors)
+        _tags["usd_ethermine"] = "v"
+        _colors["usd_ethermine"] = "red"
+    _console, _numbers = show_big(_usd, _tags, _colors)
     # print(_numbers)

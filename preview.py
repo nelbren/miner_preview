@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 """ preview.py - show information from cloudatcost.com and ethermine.org
-    v0.2.3 - 2021-11-05 - nelbren@nelbren.com"""
+    v0.2.3 - 2021-11-06 - nelbren@nelbren.com"""
 import os
 import re
 import sys
@@ -50,7 +50,7 @@ def setup_jpg(html):
     """Setup JPG"""
     html2 = os.path.splitext(html)[0] + "_temp.html"
     shutil.copyfile(html, html2)
-    with open(html2, "r+", encoding="utf-8") as _file:
+    with open(html2, "r+") as _file:
         text = _file.read()
         text = re.sub("⛏️", "&nbsp;", text)
         text = re.sub("🎯", "&nbsp;&nbsp;", text)
@@ -65,7 +65,7 @@ def setup_jpg(html):
 
 def setup_html(html):
     """Setup HTML"""
-    with open(html, "r+", encoding="utf-8") as _file:
+    with open(html, "r+") as _file:
         text = _file.read()
         pre = "pre { color: #ffffff; background-color: #000000; font-size: 41px; }"
         text = re.sub("</style>", f"{pre}\n</style>", text)
@@ -333,8 +333,12 @@ def show_data(console, params, unpaid_save, size_term):
         html = params["save_dir"] + "/miner_preview.html"
         console.save_html(html)
         setup_html(html)
+    if "timestamp" not in next_update:
+        print("Nothing to do.")
+        sys.exit(0)
     next_update["missing"] = next_update["timestamp"] - datetime.now()
-    return next_update["missing"].total_seconds(), tag
+    next_update["total_seconds"] = next_update["missing"].total_seconds()
+    return next_update["total_seconds"], tag
 
 
 def save_data(source, currency, value, usd):
@@ -375,12 +379,17 @@ def save_data(source, currency, value, usd):
     return unpaid_save
 
 
-def show_big():
+def show_big(params):
     """Show big"""
-    datas = [
-        {"source": "ethermine", "currency": "eth"},
-        {"source": "cloudatcost", "currency": "btc"},
-    ]
+    datas = []
+    if params["ethermine"]:
+        datas.append(
+            {"source": "ethermine", "currency": "eth", "color": "white"}
+        )
+    if params["cloudatcost"]:
+        datas.append(
+            {"source": "cloudatcost", "currency": "btc", "color": "white"}
+        )
     for data in datas:
         source = data["source"]
         currency = data["currency"]
@@ -391,7 +400,7 @@ def show_big():
             .limit(2)
         )
         if len(unpaids) >= 1:
-            data["number"] = unpaids[0].usd
+            data["usd_" + source] = unpaids[0].usd
         if len(unpaids) == 2:
             if unpaids[0].usd == unpaids[1].usd:
                 data["tag"] = "="
@@ -404,29 +413,41 @@ def show_big():
                 data["color"] = "red"
         else:
             data["tag"] = "="
-            data["color"] = "white"
-    tags = {"number1": datas[0]["tag"], "number2": datas[1]["tag"]}
-    colors = {
-        "normal": "black",
-        "number1": datas[0]["color"],
-        "number2": datas[1]["color"],
-    }
-    usd_etm, usd_cac = datas[0]["number"], datas[1]["number"]
-    console, numbers = big_text.show_big(usd_etm, usd_cac, tags, colors)
+    tags = {}
+    colors = {}
+    usd = {}
+    colors["normal"] = "black"
+    items = 0
+    if params["ethermine"]:
+        tags["usd_ethermine"] = datas[items]["tag"]
+        colors["usd_ethermine"] = datas[items]["color"]
+        usd["usd_ethermine"] = datas[items]["usd_ethermine"]
+        items += 1
+    if params["cloudatcost"]:
+        tags["usd_cloudatcost"] = datas[items]["tag"]
+        colors["usd_cloudatcost"] = datas[items]["color"]
+        usd["usd_cloudatcost"] = datas[items]["usd_cloudatcost"]
+    console, numbers = big_text.show_big(usd, tags, colors)
     return console, numbers
 
 
-def get_data():
+def get_data(params):
     """Get data from miner"""
-    source, currency = "ethermine", "eth"
-    etmpanel = mining_at_ethermine.ETMPanel()
-    eth, usd_etm = etmpanel.wallet()
-    unpaid_save_etm = save_data(source, currency, eth, usd_etm)
-    source, currency = "cloudatcost", "btc"
-    cacpanel = mining_at_cloudatcost.CACPanel()
-    btc, usd_cac = cacpanel.wallet()
-    unpaid_save_cac = save_data(source, currency, btc, usd_cac)
-    console, numbers = show_big()
+    if params["ethermine"]:
+        source, currency = "ethermine", "eth"
+        etmpanel = mining_at_ethermine.ETMPanel()
+        eth, usd_etm = etmpanel.wallet()
+        unpaid_save_etm = save_data(source, currency, eth, usd_etm)
+    else:
+        unpaid_save_etm = 0
+    if params["cloudatcost"]:
+        source, currency = "cloudatcost", "btc"
+        cacpanel = mining_at_cloudatcost.CACPanel()
+        btc, usd_cac = cacpanel.wallet()
+        unpaid_save_cac = save_data(source, currency, btc, usd_cac)
+    else:
+        unpaid_save_cac = 0
+    console, numbers = show_big(params)
     return console, numbers, {"etm": unpaid_save_etm, "cac": unpaid_save_cac}
 
 
@@ -436,7 +457,7 @@ def do_loop():
     size_term = get_columns_and_lines()
     params = get_params()
     while True:
-        console, numbers, unpaid_save = get_data()
+        console, numbers, unpaid_save = get_data(params)
         if params["big"]:
             return
         if params["update"]:
