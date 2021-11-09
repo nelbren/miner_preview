@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 """ preview.py - show information from cloudatcost.com and ethermine.org
-    v0.2.3 - 2021-11-06 - nelbren@nelbren.com"""
+    v0.2.5 - 2021-11-08 - nelbren@nelbren.com"""
 import os
 import re
 import sys
@@ -236,17 +236,28 @@ def get_records(records, source, currency):
     return records, unpaids
 
 
+def set_missing():
+    """Set Missing"""
+    next_update["missing"] = next_update["timestamp"] - datetime.now()
+    next_update["total_seconds"] = next_update["missing"].total_seconds()
+
+
+def set_next_update(timestamp_obj, hours):
+    """Set Next Update"""
+    next_update["timestamp"] = timestamp_obj + timedelta(hours=hours)
+    next_update["timestamp"] = next_update["timestamp"].replace(
+        minute=2, second=0
+    )
+
+
 def iterate_on_records(source, currency, table, params, data):
     """Iterate on records"""
 
-    # print('LS: ', data["lines_show"])
     tag = {}
     tag["currency"] = "[cyan]"
-    # print('ANTES: ', params["records"])
     params[f"records_{currency}"], unpaids = get_records(
         params[f"records_{currency}"], source, currency
     )
-    # print('DESPUES: ', params[f"records_{currency}"])
     data["last_unpaid"] = None
     delta = last_delta = {}
     delta[source] = data["unpaid_save"]
@@ -268,10 +279,7 @@ def iterate_on_records(source, currency, table, params, data):
         data["lines_show"] -= 1
         if item == unpaids.count():
             timestamp_obj = datetime.strptime(unpaid.timestamp, TS_FMT)
-            next_update["timestamp"] = timestamp_obj + timedelta(hours=4)
-            next_update["timestamp"] = next_update["timestamp"].replace(
-                minute=1, second=0
-            )
+            set_next_update(timestamp_obj, 4)
         data["last_unpaid"] = unpaid
 
     add_last_row(table, delta, data["last_unpaid"])
@@ -305,7 +313,6 @@ def show_data(console, params, unpaid_save, size_term):
         "last_unpaid": None,
         "unpaid_save": unpaid_save,
     }
-    # console = Console(record=True)
     tag = {}
     for source in sources:
         if source == "cloudatcost":
@@ -336,8 +343,7 @@ def show_data(console, params, unpaid_save, size_term):
     if "timestamp" not in next_update:
         print("Nothing to do.")
         sys.exit(0)
-    next_update["missing"] = next_update["timestamp"] - datetime.now()
-    next_update["total_seconds"] = next_update["missing"].total_seconds()
+    set_missing()
     return next_update["total_seconds"], tag
 
 
@@ -471,7 +477,11 @@ def do_loop():
         if params["records"] == 0 or params["save_dir"] or params["mail"]:
             return
         try:
+            if seconds < 0:
+                set_next_update(datetime.now(), 8)
+                set_missing()
             show_progress(seconds, next_update)
+
         except KeyboardInterrupt:
             sys.exit(0)
 

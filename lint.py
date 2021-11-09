@@ -6,12 +6,14 @@ import sys
 import argparse
 import logging
 import subprocess
-#from datetime import datetime
+
+# from datetime import datetime
 import anybadge
 from pylint.lint import Run
 
+
 def lint():
-    """ Lint """
+    """Lint"""
     logging.getLogger().setLevel(logging.INFO)
     parser = argparse.ArgumentParser(prog="LINT")
 
@@ -59,7 +61,9 @@ def lint():
     )
     badge.write_badge("images/pylint.svg", overwrite=True)
 
-    result = subprocess.run(["python3", "-V"], stdout=subprocess.PIPE, check=True)
+    result = subprocess.run(
+        ["python3", "-V"], stdout=subprocess.PIPE, check=True
+    )
     version = result.stdout.decode().split()[1]
     badge = anybadge.Badge("python", version, default_color="green")
     badge.write_badge("images/python.svg", overwrite=True)
@@ -71,5 +75,6 @@ def lint():
 
     sys.exit(0)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     lint()
