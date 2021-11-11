@@ -1,15 +1,13 @@
 #!/usr/bin/python3
 """ graph.py - show info like an graph
-    v0.0.1 - 2021-11-03 - nelbren@nelbren.com"""
+    v0.0.2 - 2021-11-11 - nelbren@nelbren.com"""
 from pathlib import Path
 import datetime
 import sqlite3
 import dash
 import dash_bootstrap_components as dbc
-import dash_core_components as dcc
-import dash_html_components as html
+from dash import dcc, html, dash_table
 from dash.dependencies import Input, Output
-import dash_table
 import pandas as pd
 
 HOME = str(Path.home())

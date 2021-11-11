@@ -1,2 +1,3 @@
 .secret.cfg
 __pycache__/
+.vscode/

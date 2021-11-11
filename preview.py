@@ -193,6 +193,7 @@ def get_params():
         parser.print_help()
         console = Console()
         _number = uniform(1.0, 9999.99)
+        _number = 666.66
         if randint(0, 1):
             _tag, _color = "^", "green"
         else:
@@ -200,7 +201,7 @@ def get_params():
         _fnumber = f"{_tag}${_number:5.2f}"
         big_text.big_line(console, _fnumber, _color)
         big_text.big_text(console, _fnumber, _color)
-        sys.exit(1)
+        sys.exit(0)
     if not args.ethermine and not args.cloudatcost:
         cfg = get_config()
         if cfg["address"]:

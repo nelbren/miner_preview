@@ -8,9 +8,24 @@
 ### Get 💰 wallet 📈 balance from 💻[Ethermine](https://www.ethermine.org/) and ☁️[Cloudatcost](https://www.cloudatcost.com/) ⛏️ mining 🚧 process.
 
 ---
+#### It shows the progress of mining in the amount obtained and the value of the coin at that moment, as well as the differences with the last update, it can also indicate progress goals in the amount of the coin and / or value in dollars. This information can be viewed interactively or added to a scheduled process to be carried out at specified times and then send the results to an email. 
+---
 
-## 💻 Example of output
-![](images/miner_preview.png)
+## 💻 Usage
+
+1. Mode: **Help** ( `./preview.py -h` )
+   ![](images/help.png)
+2. Mode: **Interactive** ( `./preview.py` )
+   ![](images/preview.png)
+3. Mode: **Big** ( `./preview.py -b` )
+   ![](images/big.png)   
+4. Mode: **Graph** ( `./server.bash.bat` )
+   ![](images/graph.png)
+5. Mode: **Mail** ( `./preview.py -m` )
+   ![](images/mail.jpg)
+6. Mode: **Save** ( `./preview.py -s /tmp/OUTPUT` )
+   ![](images/save.png)
+   **NOTE:** Is necessary the package: `wkhtmltopdf`
 
 ---
 
