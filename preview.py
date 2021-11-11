@@ -52,7 +52,7 @@ def setup_jpg(html):
     """Setup JPG"""
     html2 = os.path.splitext(html)[0] + "_temp.html"
     shutil.copyfile(html, html2)
-    with open(html2, "r+") as _file:
+    with open(html2, "r+", encoding="utf-8") as _file:
         text = _file.read()
         text = re.sub("⛏️", "&nbsp;", text)
         text = re.sub("🎯", "&nbsp;&nbsp;", text)
@@ -67,7 +67,7 @@ def setup_jpg(html):
 
 def setup_html(html):
     """Setup HTML"""
-    with open(html, "r+") as _file:
+    with open(html, "r+", encoding="utf-8") as _file:
         text = _file.read()
         pre = "pre { color: #ffffff; background-color: #000000; font-size: 41px; }"
         text = re.sub("</style>", f"{pre}\n</style>", text)
@@ -95,7 +95,7 @@ def mail_data(params, numbers, tag):
 
     name = "miner_preview.jpg"
     filename = params["save_dir"] + "/" + name
-    with open(filename, "rb") as _file:
+    with open(filename, "rb", encoding="utf-8") as _file:
         part = MIMEApplication(_file.read(), Name=name)
     part["Content-Decomposition"] = f"attachment, filename={name}"
     msg.attach(part)

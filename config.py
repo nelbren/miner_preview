@@ -21,7 +21,7 @@ def get_config():
     path = os.path.dirname(os.path.realpath(__file__))
     filename = ".secret.cfg"
     check_config(path, filename)
-    config.read_file(open(path + "/" + filename))
+    config.read(path + "/" + filename)
     section = "CLOUDATCOST"
     username = config.get(section, "USERNAME", fallback=None)
     password = config.get(section, "PASSWORD", fallback=None)
