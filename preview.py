@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 """ preview.py - show information from cloudatcost.com and ethermine.org
-    v0.2.5 - 2021-11-08 - nelbren@nelbren.com"""
+    v0.2.6 - 2021-11-11 - nelbren@nelbren.com"""
 import os
 import re
 import sys
@@ -12,8 +12,10 @@ from email.mime.application import MIMEApplication
 from email.mime.multipart import MIMEMultipart
 from argparse import RawTextHelpFormatter
 from datetime import datetime, timedelta
+from random import randint, uniform
 import imgkit
 import peewee
+from rich.console import Console
 import mining_at_cloudatcost
 import mining_at_ethermine
 from database import db, Unpaid
@@ -108,6 +110,7 @@ def get_params():
     eth_addr = "0x0892c9b9b58ad5a7878d5dcd4da4ee72109c32c6"
     email = "nelbren@nelbren.com"
     parser = argparse.ArgumentParser(
+        add_help=False,
         description=(
             "Get wallet balance from Ethermine and Cloudatcost "
             f"mining process.\nDonate ETH 👉 {eth_addr}"
@@ -146,21 +149,19 @@ def get_params():
         default="",
         help="Directory to save the output (HTML and JPG)",
     )
-    crontab = "1 2,6,10,14,18,22 * * * /path/preview.py -u"
+    hours = "3,7,11,15,19,23"
+    crontab = f"{hours} * * * /path/preview.py"
     parser.add_argument(
         "-u",
         "--update",
         action="store_true",
         default=False,
         dest="update",
-        help=f"Only update database, crontab 👇\n{crontab}",
-    )
-    parser.add_argument(
-        "-b",
-        action="store_true",
-        default=False,
-        dest="big",
-        help="Only show big text",
+        help=(
+            "Only update database, crontab 👇\n"
+            "# Update data at minute 1 every 4 hours\n"
+            f"1 {crontab} -u"
+        ),
     )
     parser.add_argument(
         "-m",
@@ -168,9 +169,38 @@ def get_params():
         action="store_true",
         default=False,
         dest="mail",
-        help=f"Send an email with the image attachment, crontab 👇\n{crontab}",
+        help=(
+            "Send an email with the image attachment, crontab 👇\n"
+            "# Send mail with a picture at minute 2 every 4 hours \n"
+            f"2 {crontab} -m"
+        ),
+    )
+    parser.add_argument(
+        "-h",
+        "--help",
+        action="store_true",
+        help="Show this help message and exit.",
+    )
+    parser.add_argument(
+        "-b",
+        action="store_true",
+        default=False,
+        dest="big",
+        help="Only show big text, like this 👇",
     )
     args = parser.parse_args()
+    if args.help:
+        parser.print_help()
+        console = Console()
+        _number = uniform(1.0, 9999.99)
+        if randint(0, 1):
+            _tag, _color = "^", "green"
+        else:
+            _tag, _color = "v", "red"
+        _fnumber = f"{_tag}${_number:5.2f}"
+        big_text.big_line(console, _fnumber, _color)
+        big_text.big_text(console, _fnumber, _color)
+        sys.exit(1)
     if not args.ethermine and not args.cloudatcost:
         cfg = get_config()
         if cfg["address"]:

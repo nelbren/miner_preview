@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 """ table.py - manage table
-    v0.0.1 - 2021-10-31 - nelbren@nelbren.com"""
+    v0.0.2 - 2021-11-09 - nelbren@nelbren.com"""
 import os
 import time
 from rich import box
@@ -62,6 +62,7 @@ def add_row_date(table, delta):
     color2 = "[white on black]"
     if delta["~count"]:
         delta["~value"] /= delta["~count"]
+    delta["±usd_diff"] = delta["usd_diff"] - delta["last_usd_diff"]
     table.add_row(
         f"{color1}{delta['date']}",
         f"{color2}{cols[0] * label}",
@@ -69,8 +70,9 @@ def add_row_date(table, delta):
         f"{color1}~{delta['~value']:01.8f}",
         f"{color2}{cols[3] * label}",
         f"{color1}{delta['usd_diff']:05.2f}",
-        f"{color2}{cols[5] * label}",
+        f"{color2}{delta['±usd_diff']:05.2f}",
     )
+    delta["last_usd_diff"] = delta["usd_diff"]
 
 
 def set_and_and_row_date(table, last_unpaid, unpaid, delta):

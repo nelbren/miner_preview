@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 """ deltas_and_tags.py - set deltas and tags
-    v0.0.3 - 2021-11-02 - nelbren@nelbren.com"""
+    v0.0.4 - 2021-11-09 - nelbren@nelbren.com"""
 
 from datetime import datetime, timedelta
 from config import get_config
@@ -166,6 +166,7 @@ def set_deltas_empty(unpaid, delta):
     delta["±value"] = delta["±±value"] = 0
     delta["±usd"] = delta["±usd_sum"] = 0
     delta["btc_diff"] = delta["usd_diff"] = 0
+    delta["last_usd_diff"] = 0
     delta["~value"] = delta["~count"] = 0
     delta["ts_short"] = "00:00"
 
@@ -194,5 +195,5 @@ def set_deltas(last_unpaid, unpaid, last_delta, delta):
     delta["±usd"] = unpaid.usd - last_unpaid.usd
     delta["±usd_sum"] += delta["±usd"]
     if unpaid.timestamp[:10] != last_unpaid.timestamp[:10]:
-        delta["btc_diff"] = unpaid.value - delta["btc_first"]
-        delta["usd_diff"] = unpaid.usd - delta["usd_first"]
+        delta["btc_diff"] = last_unpaid.value - delta["btc_first"]
+        delta["usd_diff"] = last_unpaid.usd - delta["usd_first"]
