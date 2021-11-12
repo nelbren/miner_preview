@@ -210,17 +210,11 @@ def big_text(console, text, color):
     """Show big text"""
     style1 = f"[black on {color}]"
     style2 = f"[{color} on black]"
+    draws = [" ", "█", "▄", "▀"]
     for row in range(8):
         for char in text:
             for index, j in enumerate(numbers[char][row]):
-                if j == 1:
-                    draw = "█"
-                elif j == 2:
-                    draw = "▄"
-                elif j == 3:
-                    draw = "▀"
-                else:
-                    draw = " "
+                draw = draws[j]
                 if char in ["^", "v", "=", "B", "E"]:
                     style = style1
                     if index == 0:
@@ -289,7 +283,7 @@ if __name__ == "__main__":
 
     _usd = {}
     _usd["usd_ethermine"] = 10.97
-    _usd["usd_cloudatcost"] = 140.99
+    _usd["usd_cloudatcost"] = 145.99
     _tags = {"usd_cloudatcost": "^"}
     _colors = {"normal": "black", "usd_cloudatcost": "green"}
     if randint(0, 1):

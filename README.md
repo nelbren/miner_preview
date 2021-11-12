@@ -29,7 +29,7 @@
     - Command: `./server.bash.bat`
     - Example:
         ![](images/graph.png)
-5. Mode: 📧 **Mail** `
+5. Mode: 📧 **Mail**
     - Command: `./preview.py -m`
     - Example:
         ![](images/mail.jpg)
