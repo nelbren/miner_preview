@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-""" lint.py v1.1 from:
+""" lint.py v1.2 from:
     https://towardsdatascience.com/keep-your-code-clean-using-\
     black-pylint-git-hooks-pre-commit-baf6991f7376 """
 import sys
@@ -72,6 +72,11 @@ def lint():
     # timestamp = datetime.now().strftime(TS_FMT)
     # badge = anybadge.Badge("updated", timestamp, default_color="green")
     # badge.write_badge("images/updated.svg", overwrite=True)
+
+    badge = anybadge.Badge("Flake8", 'passing', default_color="green")
+    badge.write_badge("images/flake8.svg", overwrite=True)
+
+    result = subprocess.run(
 
     sys.exit(0)
 
