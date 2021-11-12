@@ -73,10 +73,8 @@ def lint():
     # badge = anybadge.Badge("updated", timestamp, default_color="green")
     # badge.write_badge("images/updated.svg", overwrite=True)
 
-    badge = anybadge.Badge("Flake8", 'passing', default_color="green")
+    badge = anybadge.Badge("Flake8", "passing", default_color="green")
     badge.write_badge("images/flake8.svg", overwrite=True)
-
-    result = subprocess.run(
 
     sys.exit(0)
 
