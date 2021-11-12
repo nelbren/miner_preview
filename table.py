@@ -19,7 +19,8 @@ def get_columns_and_lines():
     try:
         columns, lines = os.get_terminal_size()
     # pylint: disable=unused-variable
-    except OSError as exception:
+    except OSError:
+        # as exception:
         columns, lines = 80, 24  # Default
     return {"columns": columns, "lines": lines}
 

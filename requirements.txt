@@ -4,6 +4,7 @@ requests
 imgkit
 black
 pylint
+flake8
 anybadge
 pyotp
 dash

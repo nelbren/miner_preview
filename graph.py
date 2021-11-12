@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 """ graph.py - show info like an graph
-    v0.0.2 - 2021-11-11 - nelbren@nelbren.com"""
+    v0.0.3 - 2021-11-11 - nelbren@nelbren.com"""
 from pathlib import Path
 import datetime
 import sqlite3
@@ -163,9 +163,12 @@ def graph_all(dataframe):
             target="cloudatcost_btc",
             value=dict(marker=dict(color="darkgoldenrod")),
         ),
-        dict(target="ethermine_eth", value=dict(marker=dict(color="darkcyan"))),
         dict(
-            target="cloudatcost_usd", value=dict(marker=dict(color="goldenrod"))
+            target="ethermine_eth", value=dict(marker=dict(color="darkcyan"))
+        ),
+        dict(
+            target="cloudatcost_usd",
+            value=dict(marker=dict(color="goldenrod")),
         ),
         dict(target="ethermine_usd", value=dict(marker=dict(color="cyan"))),
     ]
@@ -275,7 +278,9 @@ def split_filter_part(filter_part):
         for operator in operator_type:
             if operator in filter_part:
                 name_part, value_part = filter_part.split(operator, 1)
-                name = name_part[name_part.find("{") + 1 : name_part.rfind("}")]
+                name = name_part[
+                    name_part.find("{") + 1 : name_part.rfind("}")
+                ]
                 value_part = value_part.strip()
                 value_part0 = value_part[0]
                 if value_part0 == value_part[-1] and value_part0 in (

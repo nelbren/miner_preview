@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 """ preview.py - show information from cloudatcost.com and ethermine.org
-    v0.2.7 - 2021-11-11 - nelbren@nelbren.com"""
+    v0.2.8 - 2021-11-12 - nelbren@nelbren.com"""
 import os
 import re
 import sys
@@ -69,7 +69,9 @@ def setup_html(html):
     """Setup HTML"""
     with open(html, "r+", encoding="utf-8") as _file:
         text = _file.read()
-        pre = "pre { color: #ffffff; background-color: #000000; font-size: 41px; }"
+        pre1 = "pre { color: #ffffff; background-color: #000000; "
+        pre2 = "font-size: 41px; }"
+        pre = pre1 + pre2
         text = re.sub("</style>", f"{pre}\n</style>", text)
         _file.seek(0)
         _file.write(text)
@@ -354,10 +356,13 @@ def show_data(console, params, unpaid_save, size_term):
         timestamp = datetime.now().strftime(TS_FMT)
         tags_title(tag, data["last_unpaid"], timestamp)
         size_term = get_columns_and_lines()
+        msg = get_goal_msg(
+            source, currency, tag, data["last_unpaid"], size_term
+        )
         console.print(
             f"{tag['title']} ⛏️ {currency.upper()}@"
             f"[bold white]{timestamp}[not bold black] "
-            f"{tag['ok']}{get_goal_msg(source, currency, tag, data['last_unpaid'], size_term)}",
+            f"{tag['ok']}{msg}",
             style=tag["style"],
             justify="center",
         )

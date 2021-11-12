@@ -39,7 +39,7 @@ def lint():
     path = str(args.path)
     threshold = float(args.threshold)
 
-    logging.info("PyLint Starting | Path: %s | Threshold: %s ", path, threshold)
+    logging.info("PyLint | Path: %s | Threshold: %s ", path, threshold)
 
     results = Run([path], do_exit=False)
     final_score = results.linter.stats["global_note"]

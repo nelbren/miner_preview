@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 """ mining_at_cloudatcost.py - get information from Cloudatcost.com
-    v0.1.4 - 2021-10-31 - nelbren@nelbren.com
+    v0.1.5 - 2021-11-12 - nelbren@nelbren.com
     NOTE: 2FA code thanks to Isonium """
 import re
 import os
@@ -83,8 +83,9 @@ class CACPanel:
             "connection": "keep-alive",
             "origin": "https://wallet.cloudatcost.com",
             "referer": "https://wallet.cloudatcost.com/login",
-            "user-agent": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) "
-            + "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Mobile Safari/537.36",
+            "user-agent": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 "
+            + "Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) "
+            + "Chrome/90.0.4430.212 Mobile Safari/537.36",
         }
         url = self.url_base + "/login"
         self.session.post(url, data=data, headers=headers)
@@ -150,7 +151,9 @@ class CACPanel:
             print("Wallet 💰-> ", end="")
         url = self.url_base + "/wallet"
         page = self.session.get(url)
-        reg = r'font-30">\$(?P<usd>.+)&nbsp;USD</h1>\n.*font-30">(?P<btc>.+)&nbsp;BTC<'
+        reg1 = r'font-30">\$(?P<usd>.+)&nbsp;USD</h1>\n'
+        reg2 = r'.*font-30">(?P<btc>.+)&nbsp;BTC<'
+        reg = reg1 + reg2
         parse = re.search(reg, page.content.decode("utf-8"))
         debug(parse)
         if parse:

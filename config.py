@@ -10,7 +10,8 @@ def check_config(path, filename):
     """Check if config file exist"""
     if not os.path.exists(path + "/" + filename):
         print(
-            f'Create the file "{filename}" using the template "secret.cfg.EXAMPLE"!'
+            f'Create the file "{filename}" using the '
+            'template "secret.cfg.EXAMPLE"!'
         )
         sys.exit(1)
 
