@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 """ preview.py - show information from cloudatcost.com and ethermine.org
-    v0.2.6 - 2021-11-11 - nelbren@nelbren.com"""
+    v0.2.7 - 2021-11-11 - nelbren@nelbren.com"""
 import os
 import re
 import sys
@@ -193,7 +193,6 @@ def get_params():
         parser.print_help()
         console = Console()
         _number = uniform(1.0, 9999.99)
-        _number = 666.66
         if randint(0, 1):
             _tag, _color = "^", "green"
         else:

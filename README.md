@@ -11,21 +11,33 @@
 #### It shows the progress of mining in the amount obtained and the value of the coin at that moment, as well as the differences with the last update, it can also indicate progress goals in the amount of the coin and / or value in dollars. This information can be viewed interactively or added to a scheduled process to be carried out at specified times and then send the results to an email. 
 ---
 
-## 💻 Usage
+## 💻 [Usage](#usage)
 
-1. Mode: **Help** ( `./preview.py -h` )
-   ![](images/help.png)
-2. Mode: **Interactive** ( `./preview.py` )
-   ![](images/preview.png)
-3. Mode: **Big** ( `./preview.py -b` )
-   ![](images/big.png)   
-4. Mode: **Graph** ( `./server.bash.bat` )
-   ![](images/graph.png)
-5. Mode: **Mail** ( `./preview.py -m` )
-   ![](images/mail.jpg)
-6. Mode: **Save** ( `./preview.py -s /tmp/OUTPUT` )
-   ![](images/save.png)
-   **NOTE:** Is necessary the package: `wkhtmltopdf`
+1. Mode: 💡 **Help**
+    - Command: `./preview.py -h`
+    - Example: 
+        ![](images/help.png)
+2. Mode: 💻 **Interactive** 
+    - Command: `./preview.py`
+    - Example:
+        ![](images/preview.png)
+3. Mode: 📺 **Big** 
+    - Command: `./preview.py -b`
+    - Example:
+        ![](images/big.png)   
+4. Mode: 📈 **Graph** 
+    - Command: `./server.bash.bat`
+    - Example:
+        ![](images/graph.png)
+5. Mode: 📧 **Mail** `
+    - Command: `./preview.py -m`
+    - Example:
+        ![](images/mail.jpg)
+6. Mode: 📷 **Save** 
+    - Command: `./preview.py -s ~/OUTPUT`
+    - Example:
+        ![](images/save.png)
+    **NOTE:** You need to install the package: `wkhtmltopdf`
 
 ---
 
@@ -37,8 +49,12 @@
         ```bash
         git clone https://github.com/nelbren/miner_preview.git
         ```
+    - Update the project every so often
+        ```bash
+        git pull
+        ```
 
-2. **Configure your credentials**
+2. **Configure the setup with your own credentials**
     - Take a copy of config
         - 🚪 Windows
             ```bash
@@ -49,9 +65,9 @@
             ```bash
             cp secret.cfg.EXAMPLE .secret.cfg
             ```
-    - Change the data inside of `.secret.cfg`
+    - Change the data inside of file `.secret.cfg`
 
-        - **ETHERMINE** (section)
+        - 💻 **ETHERMINE** (section)
 
             |Key|Value|Description|
             |:--|:--|:--|
@@ -59,7 +75,7 @@
             |**GOAL_USD**|amount of usd|Goal in dollars|
             |**GOAL_ETH**|amount of eth|Goal in ethereum|
 
-        - **CLOUDATCOST** (section)
+        - ☁️ **CLOUDATCOST** (section)
 
             |Key|Value|Description|
             |:--|:--|:--|
@@ -69,7 +85,7 @@
             |**GOAL_USD**|amount of usd|Goal in dollars|
             |**GOAL_BTC**|amount of btc|Goal in bitcoin|
 
-        - **MAIL** (section)
+        - ✉️ **MAIL** (section)
 
             |Key|Value|Description|
             |:--|:--|:--|
@@ -80,16 +96,25 @@
 3. **Install python and modules**
     
     - Please install **python** and **pip**
+        - Python (https://www.python.org/downloads/)
+        - Pip (https://pip.pypa.io/en/stable/installation/)
     
-    - Install modules
+    - Install the required modules
         ```bash
         install.bash.bat
         ```
 
 4. **Run the script**
-    ```bash
-    python3 preview.py
-    ```
+    - Run the script through python
+        ```bash
+        python3 preview.py
+        ```
+    - Or run it directly
+        ```bash
+        ./preview.py
+        ```
+    - See the <a name="usage">Usage</a> described above 
+     
 
 5. **Feedback:** 
    - Send suggestions, comments, etc. to: nelbren@nelbren.com
