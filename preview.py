@@ -90,14 +90,16 @@ def mail_data(params, numbers, tag):
     msg["To"] = cfg["mail_to"]
     subject = ""
     if numbers[0]:
-        subject += f"⛏️ E{numbers[0]} 🎯{tag['ethermine_goal_pm_usd']}% "
+        goal = f"{tag['ethermine_goal_pm_usd']:06.2f}%"
+        subject += f"⛏️ E{numbers[0]} 🎯{goal} "
     if numbers[1]:
-        subject += f"⛏️ B{numbers[1]} 🎯{tag['cloudatcost_goal_pm_usd']}%"
+        goal = f"{tag['cloudatcost_goal_pm_usd']:06.2f}%"
+        subject += f"⛏️ B{numbers[1]} 🎯{goal}"
     msg["Subject"] = subject
 
     name = "miner_preview.jpg"
     filename = params["save_dir"] + "/" + name
-    with open(filename, "rb", encoding="utf-8") as _file:
+    with open(filename, "rb") as _file:
         part = MIMEApplication(_file.read(), Name=name)
     part["Content-Decomposition"] = f"attachment, filename={name}"
     msg.attach(part)

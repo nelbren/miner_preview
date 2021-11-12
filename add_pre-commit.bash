@@ -6,7 +6,7 @@ cat <<'EOF' > .git/hooks/pre-commit
 black -l 79 .
 if python3 lint.py -p ../miner_preview/ ; then
   echo "flash8:"
-  flake8 --ignore E203,W503 .
+  flake8 .
 fi
 EOF
 
