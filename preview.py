@@ -272,7 +272,12 @@ def get_records(records, source, currency):
 
 def set_missing():
     """Set Missing"""
-    next_update["missing"] = next_update["timestamp"] - datetime.now()
+    #AQUI
+    timestamp = datetime.now().strftime(TS_FMT)
+    timestamp_obj = datetime.strptime(timestamp, TS_FMT)
+    if timestamp_obj >  next_update["timestamp"]:
+        set_next_update(timestamp_obj, 4)
+    next_update["missing"] = next_update["timestamp"] - timestamp_obj
     next_update["total_seconds"] = next_update["missing"].total_seconds()
 
 
@@ -485,9 +490,12 @@ def get_data(params):
         unpaid_save_etm = 0
     if params["cloudatcost"]:
         source, currency = "cloudatcost", "btc"
-        cacpanel = mining_at_cloudatcost.CACPanel()
-        btc, usd_cac = cacpanel.wallet()
-        unpaid_save_cac = save_data(source, currency, btc, usd_cac)
+        try:
+            cacpanel = mining_at_cloudatcost.CACPanel()
+            btc, usd_cac = cacpanel.wallet()
+            unpaid_save_cac = save_data(source, currency, btc, usd_cac)
+        except mining_at_cloudatcost.MaintenanceMode:
+            unpaid_save_cac = 0
     else:
         unpaid_save_cac = 0
     console, numbers = show_big(params)
@@ -514,9 +522,6 @@ def do_loop():
         if params["records"] == 0 or params["save_dir"] or params["mail"]:
             return
         try:
-            if seconds < 0:
-                set_next_update(datetime.now(), 8)
-                set_missing()
             show_progress(seconds, next_update)
 
         except KeyboardInterrupt:

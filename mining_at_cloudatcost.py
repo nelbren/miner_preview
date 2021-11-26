@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 """ mining_at_cloudatcost.py - get information from Cloudatcost.com
-    v0.1.5 - 2021-11-12 - nelbren@nelbren.com
+    v0.1.6 - 2021-11-25 - nelbren@nelbren.com
     NOTE: 2FA code thanks to Isonium """
 import re
 import os
@@ -18,6 +18,10 @@ class Error(Exception):
 
 class CantGetCsrf(Error):
     """Raised when Can't get _csrf"""
+
+
+class MaintenanceMode(Error):
+    """Raised when is in maintenance mode"""
 
 
 class CantGetAuth2FA(Error):
@@ -114,11 +118,17 @@ class CACPanel:
             self._csrf = match[0]
             self.login()
         else:
-            print(f"{TAG[0]} Can't get _csrf")
-            raise CantGetCsrf
+            msg = 'Maintenance in progress'
+            reg = fr'{msg}'
+            match = re.findall(reg, page.content.decode("utf-8"))
+            if match:
+                print(f"Cloudatcost: {msg}")
+                raise MaintenanceMode
+            else:
+                print(f"{TAG[0]} Can't get _csrf")
+                raise CantGetCsrf
 
     def __init__(self):
-        # cfg = config.get_config()
         cfg = get_config()
         self.username = cfg["username"]
         self.password = cfg["password"]
@@ -169,12 +179,14 @@ DEBUG = 0
 TAG = ["✖", "✔"]
 
 if __name__ == "__main__":
-    cacpanel = CACPanel()
     try:
+        cacpanel = CACPanel()
         btc, usd = cacpanel.wallet()
     except CantGetCsrf:
         sys.exit(3)
     except CantGetUSDandBTC:
         sys.exit(5)
+    except MaintenanceMode:
+        sys.exit(6)
     else:
         print(f"BTC: {btc:1.8f} USD: {usd:05.2f}")
