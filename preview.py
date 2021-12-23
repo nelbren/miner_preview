@@ -484,6 +484,28 @@ def show_big(params):
     return console, numbers
 
 
+def get_data_remote(params):
+    """Get data using another host"""
+    cmd = "/usr/local/miner_preview/mining_at_cloudatcost.py"
+    result = subprocess.Popen(
+        f"ssh {params['hostname']} {cmd}",
+        shell=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    ).communicate()
+    data = result[0].decode("utf-8").rstrip("\n")
+    lst_data = data.split(" ")
+    btc, usd_cac = float(lst_data[1]), float(lst_data[3])
+    return btc, usd_cac
+
+
+def get_data_local():
+    """Get data using this host"""
+    cacpanel = mining_at_cloudatcost.CACPanel()
+    btc, usd_cac = cacpanel.wallet()
+    return btc, usd_cac
+
+
 def get_data(params):
     """Get data from miner"""
     if params["ethermine"]:
@@ -495,17 +517,14 @@ def get_data(params):
         unpaid_save_etm = 0
     if params["cloudatcost"]:
         source, currency = "cloudatcost", "btc"
-        host = params["hostname"]
         try:
-            if host and host != socket.gethostname():
-                cmd = '/usr/local/miner_preview/mining_at_cloudatcost.py'
-                result = subprocess.Popen(f"ssh {host} {cmd}", shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
-                data = result[0].decode('utf-8').rstrip('\n')
-                lst_data = data.split(' ')
-                btc, usd_cac = lst_data[1], lst_data[3]
+            if (
+                params["hostname"]
+                and params["hostname"] != socket.gethostname()
+            ):
+                btc, usd_cac = get_data_remote(params)
             else:
-                cacpanel = mining_at_cloudatcost.CACPanel()
-                btc, usd_cac = cacpanel.wallet()
+                btc, usd_cac = get_data_local()
             unpaid_save_cac = save_data(source, currency, btc, usd_cac)
         except mining_at_cloudatcost.MaintenanceMode:
             unpaid_save_cac = 0
