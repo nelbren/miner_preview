@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 """ config.py - get configuration
-    v0.0.3 - 2021-11-06 - nelbren@nelbren.com """
+    v0.0.4 - 2021-12-23 - nelbren@nelbren.com """
 import os
 import sys
 import configparser
@@ -24,6 +24,7 @@ def get_config():
     check_config(path, filename)
     config.read(path + "/" + filename)
     section = "CLOUDATCOST"
+    hostname = config.get(section, "HOSTNAME", fallback=None)
     username = config.get(section, "USERNAME", fallback=None)
     password = config.get(section, "PASSWORD", fallback=None)
     code_2fa = config.get(section, "CODE_2FA", fallback=None)
@@ -37,6 +38,7 @@ def get_config():
     mail_from = config.get(section, "FROM", fallback=None)
     mail_to = config.get(section, "TO", fallback=None)
     return {
+        "hostname": hostname,
         "username": username,
         "password": password,
         "code_2fa": code_2fa,

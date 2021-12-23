@@ -1,13 +1,15 @@
 #!/usr/bin/python3
 """ preview.py - show information from cloudatcost.com and ethermine.org
-    v0.2.8 - 2021-11-12 - nelbren@nelbren.com"""
+    v0.2.9 - 2021-12-23 - nelbren@nelbren.com"""
 import os
 import re
 import sys
 import shutil
+import socket
 import argparse
 import tempfile
 import smtplib
+import subprocess
 from email.mime.application import MIMEApplication
 from email.mime.multipart import MIMEMultipart
 from argparse import RawTextHelpFormatter
@@ -211,12 +213,15 @@ def get_params():
             args.ethermine = True
         if cfg["username"]:
             args.cloudatcost = True
+    #    if cfg["hostname"]:
+    hostname = cfg["hostname"]
     if args.mail:
         args.save_dir = tempfile.gettempdir()
     return {
         "big": args.big,
         "ethermine": args.ethermine,
         "cloudatcost": args.cloudatcost,
+        "hostname": hostname,
         "update": args.update,
         "records": args.records,
         "save_dir": args.save_dir,
@@ -272,10 +277,10 @@ def get_records(records, source, currency):
 
 def set_missing():
     """Set Missing"""
-    #AQUI
+    # AQUI
     timestamp = datetime.now().strftime(TS_FMT)
     timestamp_obj = datetime.strptime(timestamp, TS_FMT)
-    if timestamp_obj >  next_update["timestamp"]:
+    if timestamp_obj > next_update["timestamp"]:
         set_next_update(timestamp_obj, 4)
     next_update["missing"] = next_update["timestamp"] - timestamp_obj
     next_update["total_seconds"] = next_update["missing"].total_seconds()
@@ -490,9 +495,17 @@ def get_data(params):
         unpaid_save_etm = 0
     if params["cloudatcost"]:
         source, currency = "cloudatcost", "btc"
+        host = params["hostname"]
         try:
-            cacpanel = mining_at_cloudatcost.CACPanel()
-            btc, usd_cac = cacpanel.wallet()
+            if host and host != socket.gethostname():
+                cmd = '/usr/local/miner_preview/mining_at_cloudatcost.py'
+                result = subprocess.Popen(f"ssh {host} {cmd}", shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
+                data = result[0].decode('utf-8').rstrip('\n')
+                lst_data = data.split(' ')
+                btc, usd_cac = lst_data[1], lst_data[3]
+            else:
+                cacpanel = mining_at_cloudatcost.CACPanel()
+                btc, usd_cac = cacpanel.wallet()
             unpaid_save_cac = save_data(source, currency, btc, usd_cac)
         except mining_at_cloudatcost.MaintenanceMode:
             unpaid_save_cac = 0

@@ -13,7 +13,9 @@ def ts_to_int(timediff):
     """Timestamp to int"""
     ts_str = str(timediff)
     if isinstance(timediff, timedelta):
-        if timediff.days > 0:
+        if timediff.days == 1:
+            ts_str = ts_str.replace(" day, ", ":")
+        elif timediff.days > 0:
             ts_str = ts_str.replace(" days, ", ":")
         pos_seconds = ts_str.rfind(":")
         ts_str = ts_str[:pos_seconds]
