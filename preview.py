@@ -486,9 +486,8 @@ def show_big(params):
 
 def get_data_remote(params):
     """Get data using another host"""
-    PWD = os.path.dirname(os.path.realpath(__file__))
-    PWD_DIR = os.path.basename(PWD)
-    cmd = f"{PWD}/mining_at_cloudatcost.py"
+    pwd = os.path.dirname(os.path.realpath(__file__))
+    cmd = f"{pwd}/mining_at_cloudatcost.py"
     result = subprocess.Popen(
         f"ssh {params['hostname']} {cmd}",
         shell=True,
