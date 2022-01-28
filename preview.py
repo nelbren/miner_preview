@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 """ preview.py - show information from cloudatcost.com and ethermine.org
-    v0.2.9 - 2021-12-23 - nelbren@nelbren.com"""
+    v0.3.1 - 2022-01-27 - nelbren@nelbren.com"""
 import os
 import re
 import sys
@@ -486,7 +486,9 @@ def show_big(params):
 
 def get_data_remote(params):
     """Get data using another host"""
-    cmd = "/usr/local/miner_preview/mining_at_cloudatcost.py"
+    PWD = os.path.dirname(os.path.realpath(__file__))
+    PWD_DIR = os.path.basename(PWD)
+    cmd = f"{PWD}/mining_at_cloudatcost.py"
     result = subprocess.Popen(
         f"ssh {params['hostname']} {cmd}",
         shell=True,
