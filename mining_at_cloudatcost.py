@@ -96,10 +96,11 @@ class CACPanel:
         with open(self.cookie, "wb") as _file:
             pickle.dump(self.session.cookies, _file)
         page = self.session.get(self.url_base)
-        try:
-            page = self.auth_2fa(headers, page)
-        except MissingAuth2FA:
-            sys.exit(4)
+        if self.code_2fa:
+            try:
+                page = self.auth_2fa(headers, page)
+            except MissingAuth2FA:
+                sys.exit(4)
         reg = r">(Miners)<"
         match = re.findall(reg, page.content.decode("utf-8"))
         self.logged = match
