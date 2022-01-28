@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 """ preview.py - show information from cloudatcost.com and ethermine.org
-    v0.2.9 - 2021-12-23 - nelbren@nelbren.com"""
+    v0.3.0 - 2021-01-06 - nelbren@nelbren.com"""
 import os
 import re
 import sys

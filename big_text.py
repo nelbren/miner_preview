@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 """ big_text.py - show custom big numbers
-    v0.0.3 - 2021-11-06 - nelbren@nelbren.com"""
+    v0.0.4 - 2022-01-06 - nelbren@nelbren.com"""
 from rich.console import Console
 
 no0 = [
@@ -11,6 +11,16 @@ no0 = [
     [1, 2, 1, 3, 0, 1, 0, 0],
     [1, 1, 0, 0, 2, 1, 0, 0],
     [3, 1, 1, 1, 1, 3, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0],
+]
+no0 = [
+    [2, 1, 1, 1, 1, 1, 2, 0],
+    [1, 3, 0, 0, 2, 1, 1, 0],
+    [1, 0, 0, 2, 1, 0, 1, 0],
+    [1, 0, 2, 1, 0, 0, 1, 0],
+    [1, 2, 1, 0, 0, 0, 1, 0],
+    [1, 1, 0, 0, 0, 2, 1, 0],
+    [3, 1, 1, 1, 1, 1, 3, 0],
     [0, 0, 0, 0, 0, 0, 0, 0],
 ]
 no1 = [
@@ -257,7 +267,7 @@ def show_big(usd, tags, colors):
     if "usd_ethermine" in usd:
         tag1 = tags["usd_ethermine"]
         color1 = colors["usd_ethermine"]
-        n1_formated = f"{tag1}${usd['usd_ethermine']:7.2f}"
+        n1_formated = f"{tag1}${usd['usd_ethermine']:07.2f}"
         big_line(console, n1_formated, color0)
         big_line(console, n1_formated, color1)
         big_text(console, n1_formated, color1)
@@ -267,7 +277,7 @@ def show_big(usd, tags, colors):
     if "usd_cloudatcost" in usd:
         tag2 = tags["usd_cloudatcost"]
         color2 = colors["usd_cloudatcost"]
-        n2_formated = f"{tag2}${usd['usd_cloudatcost']:7.2f}"
+        n2_formated = f"{tag2}${usd['usd_cloudatcost']:07.2f}"
         big_line(console, n2_formated, color0)
         big_line(console, n2_formated, color2)
         big_text(console, n2_formated, color2)
