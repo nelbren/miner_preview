@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 """ mining_at_cloudatcost.py - get information from Cloudatcost.com
-    v0.1.6 - 2021-11-25 - nelbren@nelbren.com
+    v0.1.7 - 2022-01-27 - nelbren@nelbren.com
     NOTE: 2FA code thanks to Isonium """
 import re
 import os
@@ -46,22 +46,11 @@ def debug(is_ok):
 class CACPanel:
     """Class to manage the access to CAC Panel"""
 
-    headers = {
-        "accept-language": "en-US,en;q=0.9,es;q=0.8",
-        "accept-encoding": "gzip, deflate, br",
-        "content-type": "application/x-www-form-urlencoded",
-        "connection": "keep-alive",
-        "origin": "https://wallet.cloudatcost.com",
-        "referer": "https://wallet.cloudatcost.com/login",
-        "user-agent": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 "
-        + "Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) "
-        + "Chrome/90.0.4430.212 Mobile Safari/537.36",
-    }
     url_base = "https://wallet.cloudatcost.com"
     cookie = ".wallet_cloudatcost.cookie"
     logged = False
 
-    def auth_2fa(self, page):
+    def auth_2fa(self, headers, page):
         """Auth 2FA process"""
         reg = r"(Two Factor Auth)"
         match = re.findall(reg, page.content.decode("utf-8"))
@@ -74,7 +63,7 @@ class CACPanel:
             url = self.url_base + "/auth"
             totp = pyotp.TOTP(self.code_2fa)
             data = {"authCode": totp.now(), "_csrf": self._csrf}
-            self.session.post(url, data=data, headers=self.headers)
+            self.session.post(url, data=data, headers=headers)
             page = self.session.get(self.url_base)
             return page
         if not self.code_2fa:
@@ -91,13 +80,24 @@ class CACPanel:
             "password": self.password,
             "_csrf": self._csrf,
         }
+        headers = {
+            "accept-language": "en-US,en;q=0.9,es;q=0.8",
+            "accept-encoding": "gzip, deflate, br",
+            "content-type": "application/x-www-form-urlencoded",
+            "connection": "keep-alive",
+            "origin": "https://wallet.cloudatcost.com",
+            "referer": "https://wallet.cloudatcost.com/login",
+            "user-agent": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 "
+            + "Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) "
+            + "Chrome/90.0.4430.212 Mobile Safari/537.36",
+        }
         url = self.url_base + "/login"
-        self.session.post(url, data=data, headers=self.headers)
+        self.session.post(url, data=data, headers=headers)
         with open(self.cookie, "wb") as _file:
             pickle.dump(self.session.cookies, _file)
         page = self.session.get(self.url_base)
         try:
-            page = self.auth_2fa(page)
+            page = self.auth_2fa(headers, page)
         except MissingAuth2FA:
             sys.exit(4)
         reg = r">(Miners)<"
@@ -110,7 +110,7 @@ class CACPanel:
         if DEBUG:
             print("Pre-login -> ", end="")
         url = self.url_base + "/login"
-        page = self.session.get(url, headers=self.headers)
+        page = self.session.get(url)
         reg = r'_csrf" value="([^"]+)"'
         match = re.findall(reg, page.content.decode("utf-8"))
         debug(match)
@@ -133,7 +133,9 @@ class CACPanel:
         self.password = cfg["password"]
         self.code_2fa = cfg["code_2fa"]
         self.session = requests.session()
-        self.cookie = tempfile.gettempdir() + "/" + self.cookie
+        self.cookie = (
+            tempfile.gettempdir() + "/" + self.cookie + "_" + self.username
+        )
         if os.path.exists(self.cookie):
             if DEBUG:
                 print(f"Reusing 🍪 ({self.cookie})-> ", end="")

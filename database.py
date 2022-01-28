@@ -1,11 +1,14 @@
 #!/usr/bin/python3
 """ database.py - get persistence for data
-    v0.0.3 - 2021-10-24 - nelbren@nelbren.com"""
+    v0.0.4 - 2022-01-27 - nelbren@nelbren.com"""
+import os
 from pathlib import Path
 from peewee import SqliteDatabase, Model, CharField, IntegerField, FloatField
 
 HOME = str(Path.home())
-BASE = HOME + "/.miner_preview.db"
+PWD = os.path.dirname(os.path.realpath(__file__))
+PWD_DIR = os.path.basename(PWD)
+BASE = f"{HOME}/.{PWD_DIR}.db"
 db = SqliteDatabase(BASE)
 
 
