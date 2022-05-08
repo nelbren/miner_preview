@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 """ big_text.py - show custom big numbers
-    v0.0.4 - 2022-01-06 - nelbren@nelbren.com"""
+    v0.0.6 - 2022-05-07 - nelbren@nelbren.com"""
 from rich.console import Console
 
 no0 = [
@@ -259,33 +259,64 @@ def big_line(console, text, color):
     console.print()
 
 
-def show_big(usd, tags, colors):
+def add_big_usd(console, source, usd, tags, colors):
+    """Add big usd"""
+    usd_source = f"usd_{source}"
+    tag1 = tags[usd_source]
+    color0 = colors["normal"]
+    color1 = colors[usd_source]
+    n_formated = f"{tag1}${usd:07.2f}"
+    big_line(console, n_formated, color0)
+    big_line(console, n_formated, color1)
+    big_text(console, n_formated, color1)
+    return n_formated
+
+
+def add_big_val(console, val):
+    """Add big val"""
+    color0, color2 = "black", "white"
+    n_formated = f"{val:10.8f}"
+    big_line(console, n_formated, color0)
+    big_text(console, n_formated, color2)
+    big_line(console, n_formated, color0)
+
+
+def add_title(console, source):
+    console.print(f"[bold black on white][not bold black] {source}", style="black on white", justify="center")
+
+
+def show_big(usds, vals, tags, colors):
     """Show big numbers"""
     console = Console(record=True)
-    color0 = colors["normal"]
+    numbers = {}
 
-    if "usd_ethermine" in usd:
-        tag1 = tags["usd_ethermine"]
-        color1 = colors["usd_ethermine"]
-        n1_formated = f"{tag1}${usd['usd_ethermine']:07.2f}"
-        big_line(console, n1_formated, color0)
-        big_line(console, n1_formated, color1)
-        big_text(console, n1_formated, color1)
-    else:
-        n1_formated = ""
+    if "usd_ethermine" in usds:
+        add_title(console, "ETHERMINE")
+        numbers['ethermine'] = add_big_usd(console, "ethermine", usds["usd_ethermine"], tags, colors)
+        add_big_val(console, vals["val_ethermine"])
 
-    if "usd_cloudatcost" in usd:
-        tag2 = tags["usd_cloudatcost"]
-        color2 = colors["usd_cloudatcost"]
-        n2_formated = f"{tag2}${usd['usd_cloudatcost']:07.2f}"
-        big_line(console, n2_formated, color0)
-        big_line(console, n2_formated, color2)
-        big_text(console, n2_formated, color2)
-        big_line(console, n2_formated, color0)
-    else:
-        n2_formated = ""
+    if "usd_cryptoatcost" in usds:
+        add_title(console, "CRYPTOATCOST")
+        numbers['cryptoatcost'] = add_big_usd(console, "cryptoatcost", usds["usd_cryptoatcost"], tags, colors)
+        add_big_val(console, vals["val_cryptoatcost"])
 
-    return console, [n1_formated, n2_formated]
+    if "usd_nicehash" in usds:
+        add_title(console, "NICEHASH")
+        numbers['nicehash'] = add_big_usd(console, "nicehash", usds["usd_nicehash"], tags, colors)
+        add_big_val(console, vals["val_nicehash"])
+
+    return console, numbers
+
+
+def show_big2(console, btc):
+    """Show big numbers"""
+    color0, color2 = "black", "white"
+    n1_formated = f"{btc:10.8f}"
+    #big_line(console, n1_formated, color0)
+    #big_line(console, n1_formated, color2)
+    big_text(console, n1_formated, color2)
+    big_line(console, n1_formated, color0)
+    return console
 
 
 if __name__ == "__main__":
@@ -293,9 +324,9 @@ if __name__ == "__main__":
 
     _usd = {}
     _usd["usd_ethermine"] = 10.97
-    _usd["usd_cloudatcost"] = 145.99
-    _tags = {"usd_cloudatcost": "^"}
-    _colors = {"normal": "black", "usd_cloudatcost": "green"}
+    _usd["usd_cryptoatcost"] = 145.99
+    _tags = {"usd_cryptoatcost": "^"}
+    _colors = {"normal": "black", "usd_cryptoatcost": "green"}
     if randint(0, 1):
         _tags["usd_ethermine"] = "="
         _colors["usd_ethermine"] = "white"
@@ -303,4 +334,6 @@ if __name__ == "__main__":
         _tags["usd_ethermine"] = "v"
         _colors["usd_ethermine"] = "red"
     _console, _numbers = show_big(_usd, _tags, _colors)
+    _btc = 0.01494931
+    show_big2(_console, _btc)
     # print(_numbers)

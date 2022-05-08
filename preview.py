@@ -1,6 +1,6 @@
 #!/usr/bin/python3
-""" preview.py - show information from cloudatcost.com and ethermine.org
-    v0.3.1 - 2022-01-27 - nelbren@nelbren.com"""
+""" preview.py - show information from cryptoatcost.com and ethermine.org
+    v0.3.3 - 2022-02-05 - nelbren@nelbren.com"""
 import os
 import re
 import sys
@@ -9,6 +9,7 @@ import socket
 import argparse
 import tempfile
 import smtplib
+import requests
 import subprocess
 from email.mime.application import MIMEApplication
 from email.mime.multipart import MIMEMultipart
@@ -18,8 +19,9 @@ from random import randint, uniform
 import imgkit
 import peewee
 from rich.console import Console
-import mining_at_cloudatcost
-import mining_at_ethermine
+import mining.cryptoatcost
+import mining.ethermine
+import mining.nicehash
 from database import db, Unpaid
 from deltas_and_tags import (
     tags_row,
@@ -38,9 +40,12 @@ from table import (
 )
 from config import get_config
 import big_text
+import chart_text
 
 TS_FMT = "%Y-%m-%d %H:%M:%S"
 next_update = {}
+PWD = os.path.dirname(os.path.realpath(__file__))
+PWD_DIR = os.path.basename(PWD)
 
 
 def setup_db():
@@ -91,15 +96,23 @@ def mail_data(params, numbers, tag):
     msg["From"] = cfg["mail_from"]
     msg["To"] = cfg["mail_to"]
     subject = ""
-    if numbers[0]:
-        goal = f"{tag['ethermine_goal_pm_usd']:06.2f}%"
-        subject += f"⛏️ E{numbers[0]} 🎯{goal} "
-    if numbers[1]:
-        goal = f"{tag['cloudatcost_goal_pm_usd']:06.2f}%"
-        subject += f"⛏️ B{numbers[1]} 🎯{goal}"
+    for mining, number in numbers.items():
+        if mining == "ethermine":
+            goal = f"{tag['ethermine_goal_pm_usd']:06.2f}%"
+            subject += f"ETH: ⛏️ E{number} 🎯{goal} "
+        if mining == "cryptoatcost":
+            goal = f"{tag['cryptoatcost_goal_pm_usd']:06.2f}%"
+            if subject != "":
+                subject += " "
+            subject += f"CAC: ⛏️ B{number} 🎯{goal}"
+        if mining == "nicehash":
+            goal = f"{tag['nicehash_goal_pm_usd']:06.2f}%"
+            if subject != "":
+                subject += " "
+            subject += f"NCH: ⛏️ B{number} 🎯{goal}"
     msg["Subject"] = subject
 
-    name = "miner_preview.jpg"
+    name = PWD_DIR + ".jpg"
     filename = params["save_dir"] + "/" + name
     with open(filename, "rb") as _file:
         part = MIMEApplication(_file.read(), Name=name)
@@ -111,6 +124,33 @@ def mail_data(params, numbers, tag):
     smtp.close()
 
 
+def telegram_data(params, next_update):
+    cfg = get_config()
+    if not cfg["telegram_token"] or not cfg["telegram_id"]:
+        print("Please set the TOKEN and ID fields of TELEGRAM!")
+    name = PWD_DIR + ".jpg"
+    image_path = params["save_dir"] + "/" + name
+    data = {'chat_id': cfg["telegram_id"], 'caption': ''}
+    url = f"https://api.telegram.org/bot{cfg['telegram_token']}/sendPhoto"
+    with open(image_path, 'rb') as image_file:
+        response = requests.post(url, data=data, files={'photo': image_file})
+    #print(url, data, response.json())
+    msg, count  = '', 0
+    msg += '✅' #msg += '🔳'
+    numbers = ['0️⃣', '1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣']
+    msg += numbers[1]
+    next_update_str = next_update['timestamp']
+    msg += f'🔜{next_update_str}xBTC'
+    send_text = (
+                    f"https://api.telegram.org/bot{cfg['telegram_token']}"
+                    f"/sendMessage?chat_id={cfg['telegram_id']}&parse_mode=Markdown&text={msg}"
+                )
+    #print(send_text)
+    response = requests.get(send_text)
+    #print(response)
+    #return response.json()
+
+
 def get_params():
     """Get params"""
     eth_addr = "0x0892c9b9b58ad5a7878d5dcd4da4ee72109c32c6"
@@ -118,19 +158,19 @@ def get_params():
     parser = argparse.ArgumentParser(
         add_help=False,
         description=(
-            "Get wallet balance from Ethermine and Cloudatcost "
-            f"mining process.\nDonate ETH 👉 {eth_addr}"
-            f"\nContact email 👉{email}"
+            "Get wallet balance from Ethermine, Crytoatcost & Nicehash"
+            f" mining process.\nDonate ETH 👉 {eth_addr}"
+            f"\nContact email 👉 {email}"
         ),
         formatter_class=RawTextHelpFormatter,
     )
     parser.add_argument(
         "-c",
-        "--cloudatcost",
+        "--cryptoatcost",
         action="store_true",
         default=False,
-        dest="cloudatcost",
-        help="Only show cloudatcost info",
+        dest="cryptoatcost",
+        help="Only show cryptoatcost info",
     )
     parser.add_argument(
         "-e",
@@ -139,6 +179,14 @@ def get_params():
         default=False,
         dest="ethermine",
         help="Only show ethermine info",
+    )
+    parser.add_argument(
+        "-n",
+        "--nicehash",
+        action="store_true",
+        default=False,
+        dest="nicehash",
+        help="Only show nicehash info",
     )
     parser.add_argument(
         "-r",
@@ -182,6 +230,14 @@ def get_params():
         ),
     )
     parser.add_argument(
+        "-t",
+        "--telegram",
+        action="store_true",
+        default=False,
+        dest="telegram",
+        help="Send the data to telegram bot",
+    )
+    parser.add_argument(
         "-h",
         "--help",
         action="store_true",
@@ -195,7 +251,10 @@ def get_params():
         help="Only show big text, like this 👇",
     )
     args = parser.parse_args()
-    if args.help:
+    if args.help or \
+       (not args.ethermine and \
+        not args.cryptoatcost and \
+        not args.nicehash):
         parser.print_help()
         console = Console()
         _number = uniform(1.0, 9999.99)
@@ -207,25 +266,21 @@ def get_params():
         big_text.big_line(console, _fnumber, _color)
         big_text.big_text(console, _fnumber, _color)
         sys.exit(0)
-    if not args.ethermine and not args.cloudatcost:
-        cfg = get_config()
-        if cfg["address"]:
-            args.ethermine = True
-        if cfg["username"]:
-            args.cloudatcost = True
-    #    if cfg["hostname"]:
+    cfg = get_config()
     hostname = cfg["hostname"]
-    if args.mail:
+    if args.mail or args.telegram:
         args.save_dir = tempfile.gettempdir()
     return {
         "big": args.big,
         "ethermine": args.ethermine,
-        "cloudatcost": args.cloudatcost,
+        "cryptoatcost": args.cryptoatcost,
+        "nicehash": args.nicehash,
         "hostname": hostname,
         "update": args.update,
         "records": args.records,
         "save_dir": args.save_dir,
         "mail": args.mail,
+        "telegram": args.telegram,
     }
 
 
@@ -299,8 +354,8 @@ def iterate_on_records(source, currency, table, params, data):
 
     tag = {}
     tag["currency"] = "[cyan]"
-    params[f"records_{currency}"], unpaids = get_records(
-        params[f"records_{currency}"], source, currency
+    params[f"records_{source}"], unpaids = get_records(
+        params[f"records_{source}"], source, currency
     )
     data["last_unpaid"] = None
     delta = last_delta = {}
@@ -334,16 +389,19 @@ def show_data(console, params, unpaid_save, size_term):
     """Show time"""
     if params["records"] == -1:
         params["records"] = size_term["lines"]
-        if params["ethermine"] and params["cloudatcost"]:
-            params["records"] = int(params["records"] / 2)  # Sharing
+        if params["ethermine"] and params["cryptoatcost"]:
+           params["records"] = int(params["records"] / 2)  # Sharing
         params["records"] -= 4  # 3 Lines of header + 1 of Footer
     sources = []
     if params["ethermine"]:
         sources.append("ethermine")
-        params["records_eth"] = params["records"]
-    if params["cloudatcost"]:
-        sources.append("cloudatcost")
-        params["records_btc"] = params["records"]
+        params["records_ethermine"] = params["records"]
+    if params["cryptoatcost"]:
+        sources.append("cryptoatcost")
+        params["records_cryptoatcost"] = params["records"]
+    if params["nicehash"]:
+        sources.append("nicehash")
+        params["records_nicehash"] = params["records"]
 
     lines_show = size_term["lines"] - 1
     if lines_show < 3 and params["records"]:
@@ -359,7 +417,9 @@ def show_data(console, params, unpaid_save, size_term):
     }
     tag = {}
     for source in sources:
-        if source == "cloudatcost":
+        if source == "cryptoatcost":
+            currency = "btc"
+        elif source == "nicehash":
             currency = "btc"
         else:
             currency = "eth"
@@ -384,7 +444,7 @@ def show_data(console, params, unpaid_save, size_term):
             data["lines_show"] -= 1
             console.print("")
     if params["save_dir"]:
-        html = params["save_dir"] + "/miner_preview.html"
+        html = params["save_dir"] + "/" + PWD_DIR + ".html"
         console.save_html(html)
         setup_html(html)
     if "timestamp" not in next_update:
@@ -439,10 +499,14 @@ def show_big(params):
         datas.append(
             {"source": "ethermine", "currency": "eth", "color": "white"}
         )
-    if params["cloudatcost"]:
+    if params["cryptoatcost"]:
         datas.append(
-            {"source": "cloudatcost", "currency": "btc", "color": "white"}
+            {"source": "cryptoatcost", "currency": "btc", "color": "white"}
         )
+    if params["nicehash"]:
+        datas.append(
+            {"source": "nicehash", "currency": "btc", "color": "white"}
+        )        
     for data in datas:
         source = data["source"]
         currency = data["currency"]
@@ -454,6 +518,7 @@ def show_big(params):
         )
         if len(unpaids) >= 1:
             data["usd_" + source] = unpaids[0].usd
+            data["val_" + source] = unpaids[0].value
         if len(unpaids) == 2:
             if unpaids[0].usd == unpaids[1].usd:
                 data["tag"] = "="
@@ -466,28 +531,66 @@ def show_big(params):
                 data["color"] = "red"
         else:
             data["tag"] = "="
-    tags = {}
-    colors = {}
-    usd = {}
+    tags, colors, usds, vals = {}, {}, {}, {}
     colors["normal"] = "black"
     items = 0
     if params["ethermine"]:
         tags["usd_ethermine"] = datas[items]["tag"]
         colors["usd_ethermine"] = datas[items]["color"]
-        usd["usd_ethermine"] = datas[items]["usd_ethermine"]
+        usds["usd_ethermine"] = datas[items]["usd_ethermine"]
+        vals["val_ethermine"] = datas[items]["val_ethermine"]
         items += 1
-    if params["cloudatcost"]:
-        tags["usd_cloudatcost"] = datas[items]["tag"]
-        colors["usd_cloudatcost"] = datas[items]["color"]
-        usd["usd_cloudatcost"] = datas[items]["usd_cloudatcost"]
-    console, numbers = big_text.show_big(usd, tags, colors)
+    if params["cryptoatcost"]:
+        tags["usd_cryptoatcost"] = datas[items]["tag"]
+        colors["usd_cryptoatcost"] = datas[items]["color"]
+        usds["usd_cryptoatcost"] = datas[items]["usd_cryptoatcost"]
+        vals["val_cryptoatcost"] = datas[items]["val_cryptoatcost"]
+        items += 1        
+    if params["nicehash"]:
+        tags["usd_nicehash"] = datas[items]["tag"]
+        colors["usd_nicehash"] = datas[items]["color"]
+        usds["usd_nicehash"] = datas[items]["usd_nicehash"]
+        vals["val_nicehash"] = datas[items]["val_nicehash"]
+    #print(vals)
+    console, numbers = big_text.show_big(usds, vals, tags, colors)
+    #if params["cryptoatcost"]:
+    #    big_text.show_big2(console, data["val_cryptoatcost"])
+    #if params["nicehash"]:
+    #    big_text.show_big2(console, data["val_nicehash"])
     return console, numbers
+
+
+def show_chart(console, params):
+    sources = []
+    if params["cryptoatcost"]:
+        sources.append("cryptoatcost")
+    if params["nicehash"]:
+        sources.append("nicehash")
+    for source in sources:
+        text = chart_text.show_chart(source, "btc")
+        #print(text)
+        #exit(1)
+        colors = ["cyan", "magenta"]
+        c = 0
+        line = ""
+        lines = []
+        for char in text:
+            line += char if not char == "\n" else ""
+            if char == "\n":
+                lines.append(line)
+                line = ""
+        chart = 0
+        for line in lines:
+            if "Mining" in line:
+                color = colors[chart]
+                chart += 1
+            console.print(f"[{color} on black]{line}")
 
 
 def get_data_remote(params):
     """Get data using another host"""
     pwd = os.path.dirname(os.path.realpath(__file__))
-    cmd = f"{pwd}/mining_at_cloudatcost.py"
+    cmd = f"{pwd}/mining/cryptoatcost.py"
     result = subprocess.Popen(
         f"ssh {params['hostname']} {cmd}",
         shell=True,
@@ -502,7 +605,7 @@ def get_data_remote(params):
 
 def get_data_local():
     """Get data using this host"""
-    cacpanel = mining_at_cloudatcost.CACPanel()
+    cacpanel = mining_at_cryptoatcost.CACPanel()
     btc, usd_cac = cacpanel.wallet()
     return btc, usd_cac
 
@@ -511,13 +614,13 @@ def get_data(params):
     """Get data from miner"""
     if params["ethermine"]:
         source, currency = "ethermine", "eth"
-        etmpanel = mining_at_ethermine.ETMPanel()
+        etmpanel = mining.ethermine.ETMPanel()
         eth, usd_etm = etmpanel.wallet()
         unpaid_save_etm = save_data(source, currency, eth, usd_etm)
     else:
         unpaid_save_etm = 0
-    if params["cloudatcost"]:
-        source, currency = "cloudatcost", "btc"
+    if params["cryptoatcost"]:
+        source, currency = "cryptoatcost", "btc"
         try:
             if (
                 params["hostname"]
@@ -527,10 +630,17 @@ def get_data(params):
             else:
                 btc, usd_cac = get_data_local()
             unpaid_save_cac = save_data(source, currency, btc, usd_cac)
-        except mining_at_cloudatcost.MaintenanceMode:
+        except mining.cryptoatcost.MaintenanceMode:
             unpaid_save_cac = 0
     else:
         unpaid_save_cac = 0
+    if params["nicehash"]:
+        source, currency = "nicehash", "btc"
+        nchpanel = mining.nicehash.NCHPanel()
+        btc, usd_nsh = nchpanel.wallet()
+        unpaid_save_nsh = save_data(source, currency, btc, usd_nsh)
+    else:
+        unpaid_save_nhs = 0        
     console, numbers = show_big(params)
     return console, numbers, {"etm": unpaid_save_etm, "cac": unpaid_save_cac}
 
@@ -549,7 +659,10 @@ def do_loop():
             id_save = unpaid_save
             print(f"{timestamp} => {id_save}")
             return
+        show_chart(console, params)
         seconds, tag = show_data(console, params, unpaid_save, size_term)
+        if params["telegram"]:
+            telegram_data(params, next_update)
         if params["mail"]:
             mail_data(params, numbers, tag)
         if params["records"] == 0 or params["save_dir"] or params["mail"]:

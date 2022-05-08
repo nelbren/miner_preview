@@ -1,8 +1,15 @@
 #!/usr/bin/python3
-""" mining_at_ethermine.py - get information from ethermine.org
-    v0.0.5 - 2021-11-04 - nelbren@nelbren.com """
+""" ethermine.py - get information from ethermine.org
+    v0.0.6 - 2022-05-07 - nelbren@nelbren.com """
+import os
 import sys
 import requests
+import inspect
+
+WD = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
+PD = os.path.dirname(WD)
+sys.path.insert(0, PD)
+
 from config import get_config
 
 

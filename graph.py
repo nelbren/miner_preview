@@ -1,6 +1,6 @@
 #!/usr/bin/python3
-""" graph.py - show info like an graph
-    v0.0.3 - 2021-11-11 - nelbren@nelbren.com"""
+""" graph.py - display information as a graph
+    v0.0.4 - 2022-05-07 - nelbren@nelbren.com"""
 from pathlib import Path
 import datetime
 import sqlite3
@@ -160,14 +160,14 @@ def graph_all(dataframe):
     """graph_all"""
     opts_styles = [
         dict(
-            target="cloudatcost_btc",
+            target="cryptoatcost_btc",
             value=dict(marker=dict(color="darkgoldenrod")),
         ),
         dict(
             target="ethermine_eth", value=dict(marker=dict(color="darkcyan"))
         ),
         dict(
-            target="cloudatcost_usd",
+            target="cryptoatcost_usd",
             value=dict(marker=dict(color="goldenrod")),
         ),
         dict(target="ethermine_usd", value=dict(marker=dict(color="cyan"))),

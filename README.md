@@ -6,10 +6,10 @@
 [![](images/flake8.svg)](https://www.flake8rules.com/)
 [![Donate with Ethereum](https://en.cryptobadges.io/badge/micro/0x0892c9b9b58ad5a7878d5dcd4da4ee72109c32c6)](https://en.cryptobadges.io/donate/0x0892c9b9b58ad5a7878d5dcd4da4ee72109c32c6)
 
-### Get 💰 wallet 📈 balance from 💻[Ethermine](https://www.ethermine.org/) and ☁️[Cloudatcost](https://www.cloudatcost.com/) ⛏️ mining 🚧 process.
+### Get 💰 wallet 📈 balance from 💻[Ethermine](https://www.ethermine.org/), ☁️[Cryptoatcost](https://www.cryptoatcost.com/) and 💻[Nicehash](https://www.nicehash.com/) ⛏️ mining 🚧 process.
 
 ---
-#### It shows the progress of mining in the amount obtained and the value of the coin at that moment, as well as the differences with the last update, it can also indicate progress goals in the amount of the coin and / or value in dollars. This information can be viewed interactively or added to a scheduled process to be carried out at specified times and then send the results to an email. 
+#### It shows the progress of mining in the amount obtained and the value of the coin at that moment, as well as the differences with the last update, it can also indicate progress goals in the amount of the coin and / or value in dollars. This information can be viewed interactively or added to a scheduled process to be carried out at specified times and then send the results to an email or telegram bot. 
 ---
 
 ## 💻 [Usage](#usage)
@@ -76,7 +76,7 @@
             |**GOAL_USD**|amount of usd|Goal in dollars|
             |**GOAL_ETH**|amount of eth|Goal in ethereum|
 
-        - ☁️ **CLOUDATCOST** (section)
+        - ☁️ **CRYPTOATCOST** (section)
 
             |Key|Value|Description|
             |:--|:--|:--|
@@ -86,12 +86,29 @@
             |**GOAL_USD**|amount of usd|Goal in dollars|
             |**GOAL_BTC**|amount of btc|Goal in bitcoin|
 
+        - 💻 **NICEHASH** (section)
+
+            |Key|Value|Description|
+            |:--|:--|:--|
+            |**ORG**|your org|Credentials of access|
+            |**KEY**|your key|Credentials of access|
+            |**SECRET**|your secret|Credentials of access|
+            |**GOAL_USD**|amount of usd|Goal in dollars|
+            |**GOAL_BTC**|amount of btc|Goal in bitcoin|
+
         - ✉️ **MAIL** (section)
 
             |Key|Value|Description|
             |:--|:--|:--|
             |**FROM**|your sender mail|The sender's email|
             |**TO**|your receive mail|The recipient's address|
+
+        - ✉️ **TELEGRAM** (section)
+
+            |Key|Value|Description|
+            |:--|:--|:--|
+            |**TOKEN**|your telegram token|The token for use the bot|
+            |**ID**|your telegram id|The id of bot|
 
 
 3. **Install python and modules**

@@ -1,12 +1,11 @@
 #!/usr/bin/python3
 """ deltas_and_tags.py - set deltas and tags
-    v0.0.4 - 2021-11-09 - nelbren@nelbren.com"""
+    v0.0.5 - 2022-05-07 - nelbren@nelbren.com"""
 
 from datetime import datetime, timedelta
 from config import get_config
 
 TS_FMT = "%Y-%m-%d %H:%M:%S"
-SOURCE = "cloudatcost"
 
 
 def ts_to_int(timediff):
@@ -132,8 +131,10 @@ def get_goal_msg_item(tag, label, goal, value, item_cols):
 def get_goals(miner):
     """Get goals from config"""
     cfg = get_config()
-    if miner == "cloudatcost":
+    if miner == "cryptoatcost":
         return cfg["cac_goal_usd"], cfg["cac_goal_btc"]
+    elif miner == "nicehash":
+        return cfg["nch_goal_usd"], cfg["nch_goal_btc"]
     return cfg["etm_goal_usd"], cfg["etm_goal_btc"]
 
 
