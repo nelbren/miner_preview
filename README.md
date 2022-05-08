@@ -9,7 +9,7 @@
 ### Get 💰 wallet 📈 balance from 💻[Ethermine](https://www.ethermine.org/), ☁️[Cryptoatcost](https://www.cryptoatcost.com/) and 💻[Nicehash](https://www.nicehash.com/) ⛏️ mining 🚧 process.
 
 ---
-#### It shows the progress of mining in the amount obtained and the value of the coin at that moment, as well as the differences with the last update, it can also indicate progress goals in the amount of the coin and / or value in dollars. This information can be viewed interactively or added to a scheduled process to be carried out at specified times and then send the results to an email or telegram bot. 
+#### It shows the progress of mining in the amount obtained and the value of the coin at that moment, as well as the differences with the last update, it can also indicate progress goals in the amount of the coin and / or value in dollars. This information can be viewed interactively or added to a scheduled process to be carried out at specified times and then send the results to an ✉️ email or 🤖 telegram bot.
 ---
 
 ## 💻 [Usage](#usage)
@@ -19,26 +19,30 @@
     - Example: 
         ![](images/help.png)
 2. Mode: 💻 **Interactive** 
-    - Command: `./preview.py`
+    - Command: `./preview.py -c`
     - Example:
         ![](images/preview.png)
 3. Mode: 📺 **Big** 
-    - Command: `./preview.py -b`
+    - Command: `./preview.py -c -b`
     - Example:
         ![](images/big.png)   
 4. Mode: 📈 **Graph** 
     - Command: `./server.bash.bat`
     - Example:
         ![](images/graph.png)
-5. Mode: 📧 **Mail**
-    - Command: `./preview.py -m`
-    - Example:
-        ![](images/mail.jpg)
-6. Mode: 📷 **Save** 
-    - Command: `./preview.py -s ~/OUTPUT`
+5. Mode: 📷 **Save** 
+    - Command: `./preview.py -c -s ~/OUTPUT`
     - Example:
         ![](images/save.png)
     **NOTE:** You need to install the package: `wkhtmltopdf`
+6. Mode: 📧 **Mail**
+    - Command: `./preview.py -c -m`
+    - Example:
+        ![](images/mail.jpg)
+7. Mode: 🤖 **Telegram Bot**
+    - Command: `./preview.py -c -t`
+    - Example:
+        ![](images/telegram.png)
 
 ---
 
@@ -103,7 +107,7 @@
             |**FROM**|your sender mail|The sender's email|
             |**TO**|your receive mail|The recipient's address|
 
-        - ✉️ **TELEGRAM** (section)
+        - 🤖 **TELEGRAM** (section)
 
             |Key|Value|Description|
             |:--|:--|:--|
