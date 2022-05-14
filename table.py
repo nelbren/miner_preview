@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 """ table.py - manage table
-    v0.0.2 - 2021-11-09 - nelbren@nelbren.com"""
+    v0.0.3 - 2022-05-14 - nelbren@nelbren.com"""
 import os
 import time
 from rich import box
@@ -31,11 +31,11 @@ def add_columns(table):
         "ts", justify="center", style="white", no_wrap=True, max_width=10
     )
     table.add_column(
-        "±ts", justify="right", style="magenta", no_wrap=True, max_width=8
+        "±ts", justify="right", style="magenta", no_wrap=False, max_width=8
     )
     table.add_column("value", justify="right", style="green", no_wrap=True)
     table.add_column("±value", justify="right", style="magenta", no_wrap=True)
-    table.add_column("±(±val)", justify="right", style="magenta", no_wrap=True)
+    table.add_column("±(±val)", justify="right", style="magenta", no_wrap=False)
     table.add_column("usd", justify="right", style="green", no_wrap=True)
     table.add_column("±usd", justify="right", style="magenta", no_wrap=True)
 
