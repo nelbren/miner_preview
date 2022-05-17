@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 """ preview.py - show information from cryptoatcost.com and ethermine.org
-    v0.3.3 - 2022-02-05 - nelbren@nelbren.com"""
+    v0.3.4 - 2022-05-16 - nelbren@nelbren.com"""
 import os
 import re
 import sys
@@ -86,8 +86,30 @@ def setup_html(html):
     setup_jpg(html)
 
 
+def get_subject(numbers, tag):
+    """get_subject"""
+    subject = ""
+    for mining, number in numbers.items():
+        if mining == "ethermine":
+            goal = f"{tag['ethermine_goal_pm_usd']:06.2f}%"
+            #subject += f"ETM: ⛏️ E{number['usd']} 🎯{goal}"
+            subject += f"ETM⛏️💵{number['usd']}🏦{number['val']}"
+        if mining == "cryptoatcost":
+            goal = f"{tag['cryptoatcost_goal_pm_usd']:06.2f}%"
+            if subject != "":
+                subject += " "
+            #subject += f"CAC: ⛏️ B{number['usd']} 🎯{goal}"
+            subject += f"CAC⛏️💵{number['usd']}🏦{number['val']}"
+        if mining == "nicehash":
+            goal = f"{tag['nicehash_goal_pm_usd']:06.2f}%"
+            if subject != "":
+                subject += " "
+            #subject += f"NCH: ⛏️ B{number['usd']} 🎯{goal}"
+            subject += f"NCH⛏️💵{number['usd']}🏦{number['val']}"
+    return subject
+
 def mail_data(params, numbers, tag):
-    """Mail"""
+    """mail_data"""
     cfg = get_config()
     if not cfg["mail_from"] or not cfg["mail_to"]:
         print("Please set the FROM and TO fields of MAIL!")
@@ -95,22 +117,7 @@ def mail_data(params, numbers, tag):
     msg = MIMEMultipart()
     msg["From"] = cfg["mail_from"]
     msg["To"] = cfg["mail_to"]
-    subject = ""
-    for mining, number in numbers.items():
-        if mining == "ethermine":
-            goal = f"{tag['ethermine_goal_pm_usd']:06.2f}%"
-            subject += f"ETH: ⛏️ E{number} 🎯{goal} "
-        if mining == "cryptoatcost":
-            goal = f"{tag['cryptoatcost_goal_pm_usd']:06.2f}%"
-            if subject != "":
-                subject += " "
-            subject += f"CAC: ⛏️ B{number} 🎯{goal}"
-        if mining == "nicehash":
-            goal = f"{tag['nicehash_goal_pm_usd']:06.2f}%"
-            if subject != "":
-                subject += " "
-            subject += f"NCH: ⛏️ B{number} 🎯{goal}"
-    msg["Subject"] = subject
+    msg["Subject"] = get_subject(numbers, tag)
 
     name = PWD_DIR + ".jpg"
     filename = params["save_dir"] + "/" + name
@@ -124,10 +131,23 @@ def mail_data(params, numbers, tag):
     smtp.close()
 
 
-def telegram_data(params, next_update):
+def telegram_send_msg(cfg, msg):
+    """telegram_send_msg"""
+    send_text = (
+                    f"https://api.telegram.org/bot{cfg['telegram_token']}"
+                    f"/sendMessage?chat_id={cfg['telegram_id']}&parse_mode=Markdown&text={msg}"
+                )
+    #print(send_text)
+    response = requests.get(send_text)
+    #print(response)
+    #return response.json()
+
+def telegram_data(params, numbers, tag, next_update):
     cfg = get_config()
     if not cfg["telegram_token"] or not cfg["telegram_id"]:
         print("Please set the TOKEN and ID fields of TELEGRAM!")
+    subject = get_subject(numbers, tag)
+    telegram_send_msg(cfg, subject)
     name = PWD_DIR + ".jpg"
     image_path = params["save_dir"] + "/" + name
     data = {'chat_id': cfg["telegram_id"], 'caption': ''}
@@ -141,14 +161,7 @@ def telegram_data(params, next_update):
     msg += numbers[1]
     next_update_str = next_update['timestamp']
     msg += f'🔜{next_update_str}xBTC'
-    send_text = (
-                    f"https://api.telegram.org/bot{cfg['telegram_token']}"
-                    f"/sendMessage?chat_id={cfg['telegram_id']}&parse_mode=Markdown&text={msg}"
-                )
-    #print(send_text)
-    response = requests.get(send_text)
-    #print(response)
-    #return response.json()
+    telegram_send_msg(cfg, msg)
 
 
 def get_params():
@@ -521,34 +534,50 @@ def show_big(params):
             data["val_" + source] = unpaids[0].value
         if len(unpaids) == 2:
             if unpaids[0].usd == unpaids[1].usd:
-                data["tag"] = "="
-                data["color"] = "white"
+                data["tag_usd"] = "="
+                data["color_usd"] = "white"
             elif unpaids[0].usd > unpaids[1].usd:
-                data["tag"] = "^"
-                data["color"] = "green"
+                data["tag_usd"] = "^"
+                data["color_usd"] = "green"
             else:
-                data["tag"] = "v"
-                data["color"] = "red"
+                data["tag_usd"] = "v"
+                data["color_usd"] = "red"
+            if unpaids[0].value == unpaids[1].value:
+                data["tag_val"] = "="
+                data["color_val"] = "white"
+            elif unpaids[0].value > unpaids[1].value:
+                data["tag_val"] = "^"
+                data["color_val"] = "green"
+            else:
+                data["tag_val"] = "v"
+                data["color_val"] = "red"
         else:
-            data["tag"] = "="
+            data["tag_usd"] = "="
+            data["tag_val"] = "="
     tags, colors, usds, vals = {}, {}, {}, {}
     colors["normal"] = "black"
     items = 0
     if params["ethermine"]:
-        tags["usd_ethermine"] = datas[items]["tag"]
-        colors["usd_ethermine"] = datas[items]["color"]
+        tags["usd_ethermine"] = datas[items]["tag_usd"]
+        tags["val_ethermine"] = datas[items]["tag_val"]
+        colors["usd_ethermine"] = datas[items]["color_usd"]
+        colors["val_ethermine"] = datas[items]["color_val"]
         usds["usd_ethermine"] = datas[items]["usd_ethermine"]
         vals["val_ethermine"] = datas[items]["val_ethermine"]
         items += 1
     if params["cryptoatcost"]:
-        tags["usd_cryptoatcost"] = datas[items]["tag"]
-        colors["usd_cryptoatcost"] = datas[items]["color"]
+        tags["usd_cryptoatcost"] = datas[items]["tag_usd"]
+        tags["val_cryptoatcost"] = datas[items]["tag_val"]
+        colors["usd_cryptoatcost"] = datas[items]["color_usd"]
+        colors["val_cryptoatcost"] = datas[items]["color_val"]
         usds["usd_cryptoatcost"] = datas[items]["usd_cryptoatcost"]
         vals["val_cryptoatcost"] = datas[items]["val_cryptoatcost"]
         items += 1        
     if params["nicehash"]:
-        tags["usd_nicehash"] = datas[items]["tag"]
-        colors["usd_nicehash"] = datas[items]["color"]
+        tags["usd_nicehash"] = datas[items]["tag_usd"]
+        tags["val_nicehash"] = datas[items]["tag_val"]
+        colors["usd_nicehash"] = datas[items]["color_usd"]
+        colors["val_nicehash"] = datas[items]["color_val"]
         usds["usd_nicehash"] = datas[items]["usd_nicehash"]
         vals["val_nicehash"] = datas[items]["val_nicehash"]
     #print(vals)
@@ -662,7 +691,7 @@ def do_loop():
         show_chart(console, params)
         seconds, tag = show_data(console, params, unpaid_save, size_term)
         if params["telegram"]:
-            telegram_data(params, next_update)
+            telegram_data(params, numbers, tag, next_update)
         if params["mail"]:
             mail_data(params, numbers, tag)
         if params["records"] == 0 or params["save_dir"] or params["mail"]:

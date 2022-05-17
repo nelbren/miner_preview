@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 """ big_text.py - show custom big numbers
-    v0.0.6 - 2022-05-07 - nelbren@nelbren.com"""
+    v0.0.7 - 2022-05-16 - nelbren@nelbren.com"""
 from rich.console import Console
 
 no0 = [
@@ -225,12 +225,12 @@ def big_text(console, text, color):
         for char in text:
             for index, j in enumerate(numbers[char][row]):
                 draw = draws[j]
-                if char in ["^", "v", "=", "B", "E"]:
+                if char in ["^", "v", "="]:
                     style = style1
                     if index == 0:
                         console.print(f"{style2} ", end="")
                         console.print(f"{style} ", end="")
-                elif char == "$":
+                elif char in ["$", "B", "E"]:
                     style = style2
                     if index == 0:
                         console.print(f"{style} ", end="")
@@ -246,11 +246,11 @@ def big_line(console, text, color):
     style2 = f"[{color} on black]"
     for char in text:
         line = " " * 8
-        if char in ["^", "v", "=", "B", "E"]:
+        if char in ["^", "v", "="]:
             style = style1
             console.print(f"{style2} ", end="")
             console.print(f"{style} ", end="")
-        elif char == "$":
+        elif char in ["$", "B", "E"]:
             style = style2
             console.print(f"{style} ", end="")
         else:
@@ -272,13 +272,17 @@ def add_big_usd(console, source, usd, tags, colors):
     return n_formated
 
 
-def add_big_val(console, val):
+def add_big_val(console, source, val, tags, colors):
     """Add big val"""
-    color0, color2 = "black", "white"
-    n_formated = f"{val:10.8f}"
+    val_source = f"val_{source}"
+    tag1 = tags[val_source]
+    color0 = colors["normal"]
+    color1 = colors[val_source]
+    n_formated = f"{tag1}B{val:10.8f}"
     big_line(console, n_formated, color0)
-    big_text(console, n_formated, color2)
+    big_text(console, n_formated, color1)
     big_line(console, n_formated, color0)
+    return n_formated
 
 
 def add_title(console, source):
@@ -292,19 +296,19 @@ def show_big(usds, vals, tags, colors):
 
     if "usd_ethermine" in usds:
         add_title(console, "ETHERMINE")
-        numbers['ethermine'] = add_big_usd(console, "ethermine", usds["usd_ethermine"], tags, colors)
-        add_big_val(console, vals["val_ethermine"])
-
+        format_usd = add_big_usd(console, "ethermine", usds["usd_ethermine"], tags, colors)
+        format_val = add_big_val(console, "ethermine", vals["val_ethermine"], tags, colors)
+        numbers['ethermine'] = {'usd': format_usd, 'val': format_val}
     if "usd_cryptoatcost" in usds:
         add_title(console, "CRYPTOATCOST")
-        numbers['cryptoatcost'] = add_big_usd(console, "cryptoatcost", usds["usd_cryptoatcost"], tags, colors)
-        add_big_val(console, vals["val_cryptoatcost"])
-
+        format_usd = add_big_usd(console, "cryptoatcost", usds["usd_cryptoatcost"], tags, colors)
+        format_val = add_big_val(console, "cryptoatcost", vals["val_cryptoatcost"], tags, colors)
+        numbers['cryptoatcost'] = {'usd': format_usd, 'val': format_val}
     if "usd_nicehash" in usds:
         add_title(console, "NICEHASH")
-        numbers['nicehash'] = add_big_usd(console, "nicehash", usds["usd_nicehash"], tags, colors)
-        add_big_val(console, vals["val_nicehash"])
-
+        format_usd = add_big_usd(console, "nicehash", usds["usd_nicehash"], tags, colors)
+        format_val = add_big_val(console, "nicehash", vals["val_nicehash"], tags, colors)
+        numbers['nicehash'] = {'usd': format_usd, 'val': format_val}
     return console, numbers
 
 
