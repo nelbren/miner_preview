@@ -280,8 +280,9 @@ def add_big_val(console, source, val, tags, colors):
     color1 = colors[val_source]
     n_formated = f"{tag1}B{val:10.8f}"
     big_line(console, n_formated, color0)
+    big_line(console, n_formated, color1)
     big_text(console, n_formated, color1)
-    big_line(console, n_formated, color0)
+    #big_line(console, n_formated, color0)
     return n_formated
 
 
