@@ -164,9 +164,9 @@ class NCHPanel:
             self.get_accounts_for_currency("BTC")["totalBalance"]
         )
         unpaid_usd = round(unpaid_btc * price, 2)
-        #return unpaid_btc, unpaid_usd, next_payout, pending_btc, pending_usd
-        unpaid_btc = f'{unpaid_btc:1.8f}'
-        unpaid_usd = f'{unpaid_usd:05.2f}'
+        # return unpaid_btc, unpaid_usd, next_payout, pending_btc, pending_usd
+        unpaid_btc = f"{unpaid_btc:1.8f}"
+        unpaid_usd = f"{unpaid_usd:05.2f}"
         return float(unpaid_btc), float(unpaid_usd)
 
     def __init__(self):

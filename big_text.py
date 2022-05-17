@@ -286,7 +286,11 @@ def add_big_val(console, source, val, tags, colors):
 
 
 def add_title(console, source):
-    console.print(f"[bold black on white][not bold black] {source}", style="black on white", justify="center")
+    console.print(
+        f"[bold black on white][not bold black] {source}",
+        style="black on white",
+        justify="center",
+    )
 
 
 def show_big(usds, vals, tags, colors):
@@ -296,19 +300,31 @@ def show_big(usds, vals, tags, colors):
 
     if "usd_ethermine" in usds:
         add_title(console, "ETHERMINE")
-        format_usd = add_big_usd(console, "ethermine", usds["usd_ethermine"], tags, colors)
-        format_val = add_big_val(console, "ethermine", vals["val_ethermine"], tags, colors)
-        numbers['ethermine'] = {'usd': format_usd, 'val': format_val}
+        format_usd = add_big_usd(
+            console, "ethermine", usds["usd_ethermine"], tags, colors
+        )
+        format_val = add_big_val(
+            console, "ethermine", vals["val_ethermine"], tags, colors
+        )
+        numbers["ethermine"] = {"usd": format_usd, "val": format_val}
     if "usd_cryptoatcost" in usds:
         add_title(console, "CRYPTOATCOST")
-        format_usd = add_big_usd(console, "cryptoatcost", usds["usd_cryptoatcost"], tags, colors)
-        format_val = add_big_val(console, "cryptoatcost", vals["val_cryptoatcost"], tags, colors)
-        numbers['cryptoatcost'] = {'usd': format_usd, 'val': format_val}
+        format_usd = add_big_usd(
+            console, "cryptoatcost", usds["usd_cryptoatcost"], tags, colors
+        )
+        format_val = add_big_val(
+            console, "cryptoatcost", vals["val_cryptoatcost"], tags, colors
+        )
+        numbers["cryptoatcost"] = {"usd": format_usd, "val": format_val}
     if "usd_nicehash" in usds:
         add_title(console, "NICEHASH")
-        format_usd = add_big_usd(console, "nicehash", usds["usd_nicehash"], tags, colors)
-        format_val = add_big_val(console, "nicehash", vals["val_nicehash"], tags, colors)
-        numbers['nicehash'] = {'usd': format_usd, 'val': format_val}
+        format_usd = add_big_usd(
+            console, "nicehash", usds["usd_nicehash"], tags, colors
+        )
+        format_val = add_big_val(
+            console, "nicehash", vals["val_nicehash"], tags, colors
+        )
+        numbers["nicehash"] = {"usd": format_usd, "val": format_val}
     return console, numbers
 
 
@@ -316,8 +332,8 @@ def show_big2(console, btc):
     """Show big numbers"""
     color0, color2 = "black", "white"
     n1_formated = f"{btc:10.8f}"
-    #big_line(console, n1_formated, color0)
-    #big_line(console, n1_formated, color2)
+    # big_line(console, n1_formated, color0)
+    # big_line(console, n1_formated, color2)
     big_text(console, n1_formated, color2)
     big_line(console, n1_formated, color0)
     return console

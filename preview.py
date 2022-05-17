@@ -92,21 +92,22 @@ def get_subject(numbers, tag):
     for mining, number in numbers.items():
         if mining == "ethermine":
             goal = f"{tag['ethermine_goal_pm_usd']:06.2f}%"
-            #subject += f"ETM: ⛏️ E{number['usd']} 🎯{goal}"
+            # subject += f"ETM: ⛏️ E{number['usd']} 🎯{goal}"
             subject += f"ETM⛏️💵{number['usd']}🏦{number['val']}"
         if mining == "cryptoatcost":
             goal = f"{tag['cryptoatcost_goal_pm_usd']:06.2f}%"
             if subject != "":
                 subject += " "
-            #subject += f"CAC: ⛏️ B{number['usd']} 🎯{goal}"
+            # subject += f"CAC: ⛏️ B{number['usd']} 🎯{goal}"
             subject += f"CAC⛏️💵{number['usd']}🏦{number['val']}"
         if mining == "nicehash":
             goal = f"{tag['nicehash_goal_pm_usd']:06.2f}%"
             if subject != "":
                 subject += " "
-            #subject += f"NCH: ⛏️ B{number['usd']} 🎯{goal}"
+            # subject += f"NCH: ⛏️ B{number['usd']} 🎯{goal}"
             subject += f"NCH⛏️💵{number['usd']}🏦{number['val']}"
     return subject
+
 
 def mail_data(params, numbers, tag):
     """mail_data"""
@@ -134,13 +135,14 @@ def mail_data(params, numbers, tag):
 def telegram_send_msg(cfg, msg):
     """telegram_send_msg"""
     send_text = (
-                    f"https://api.telegram.org/bot{cfg['telegram_token']}"
-                    f"/sendMessage?chat_id={cfg['telegram_id']}&parse_mode=Markdown&text={msg}"
-                )
-    #print(send_text)
+        f"https://api.telegram.org/bot{cfg['telegram_token']}"
+        f"/sendMessage?chat_id={cfg['telegram_id']}&parse_mode=Markdown&text={msg}"
+    )
+    # print(send_text)
     response = requests.get(send_text)
-    #print(response)
-    #return response.json()
+    # print(response)
+    # return response.json()
+
 
 def telegram_data(params, numbers, tag, next_update):
     cfg = get_config()
@@ -150,17 +152,17 @@ def telegram_data(params, numbers, tag, next_update):
     telegram_send_msg(cfg, subject)
     name = PWD_DIR + ".jpg"
     image_path = params["save_dir"] + "/" + name
-    data = {'chat_id': cfg["telegram_id"], 'caption': ''}
+    data = {"chat_id": cfg["telegram_id"], "caption": ""}
     url = f"https://api.telegram.org/bot{cfg['telegram_token']}/sendPhoto"
-    with open(image_path, 'rb') as image_file:
-        response = requests.post(url, data=data, files={'photo': image_file})
-    #print(url, data, response.json())
-    msg, count  = '', 0
-    msg += '✅' #msg += '🔳'
-    numbers = ['0️⃣', '1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣']
+    with open(image_path, "rb") as image_file:
+        response = requests.post(url, data=data, files={"photo": image_file})
+    # print(url, data, response.json())
+    msg, count = "", 0
+    msg += "✅"  # msg += '🔳'
+    numbers = ["0️⃣", "1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣"]
     msg += numbers[1]
-    next_update_str = next_update['timestamp']
-    msg += f'🔜{next_update_str}xBTC'
+    next_update_str = next_update["timestamp"]
+    msg += f"🔜{next_update_str}xBTC"
     telegram_send_msg(cfg, msg)
 
 
@@ -264,10 +266,9 @@ def get_params():
         help="Only show big text, like this 👇",
     )
     args = parser.parse_args()
-    if args.help or \
-       (not args.ethermine and \
-        not args.cryptoatcost and \
-        not args.nicehash):
+    if args.help or (
+        not args.ethermine and not args.cryptoatcost and not args.nicehash
+    ):
         parser.print_help()
         console = Console()
         _number = uniform(1.0, 9999.99)
@@ -403,7 +404,7 @@ def show_data(console, params, unpaid_save, size_term):
     if params["records"] == -1:
         params["records"] = size_term["lines"]
         if params["ethermine"] and params["cryptoatcost"]:
-           params["records"] = int(params["records"] / 2)  # Sharing
+            params["records"] = int(params["records"] / 2)  # Sharing
         params["records"] -= 4  # 3 Lines of header + 1 of Footer
     sources = []
     if params["ethermine"]:
@@ -519,7 +520,7 @@ def show_big(params):
     if params["nicehash"]:
         datas.append(
             {"source": "nicehash", "currency": "btc", "color": "white"}
-        )        
+        )
     for data in datas:
         source = data["source"]
         currency = data["currency"]
@@ -572,7 +573,7 @@ def show_big(params):
         colors["val_cryptoatcost"] = datas[items]["color_val"]
         usds["usd_cryptoatcost"] = datas[items]["usd_cryptoatcost"]
         vals["val_cryptoatcost"] = datas[items]["val_cryptoatcost"]
-        items += 1        
+        items += 1
     if params["nicehash"]:
         tags["usd_nicehash"] = datas[items]["tag_usd"]
         tags["val_nicehash"] = datas[items]["tag_val"]
@@ -580,11 +581,11 @@ def show_big(params):
         colors["val_nicehash"] = datas[items]["color_val"]
         usds["usd_nicehash"] = datas[items]["usd_nicehash"]
         vals["val_nicehash"] = datas[items]["val_nicehash"]
-    #print(vals)
+    # print(vals)
     console, numbers = big_text.show_big(usds, vals, tags, colors)
-    #if params["cryptoatcost"]:
+    # if params["cryptoatcost"]:
     #    big_text.show_big2(console, data["val_cryptoatcost"])
-    #if params["nicehash"]:
+    # if params["nicehash"]:
     #    big_text.show_big2(console, data["val_nicehash"])
     return console, numbers
 
@@ -597,8 +598,8 @@ def show_chart(console, params):
         sources.append("nicehash")
     for source in sources:
         text = chart_text.show_chart(source, "btc")
-        #print(text)
-        #exit(1)
+        # print(text)
+        # exit(1)
         colors = ["cyan", "magenta"]
         c = 0
         line = ""
@@ -669,7 +670,7 @@ def get_data(params):
         btc, usd_nsh = nchpanel.wallet()
         unpaid_save_nsh = save_data(source, currency, btc, usd_nsh)
     else:
-        unpaid_save_nhs = 0        
+        unpaid_save_nhs = 0
     console, numbers = show_big(params)
     return console, numbers, {"etm": unpaid_save_etm, "cac": unpaid_save_cac}
 

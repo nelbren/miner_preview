@@ -35,7 +35,9 @@ def add_columns(table):
     )
     table.add_column("value", justify="right", style="green", no_wrap=True)
     table.add_column("±value", justify="right", style="magenta", no_wrap=True)
-    table.add_column("±(±val)", justify="right", style="magenta", no_wrap=False)
+    table.add_column(
+        "±(±val)", justify="right", style="magenta", no_wrap=False
+    )
     table.add_column("usd", justify="right", style="green", no_wrap=True)
     table.add_column("±usd", justify="right", style="magenta", no_wrap=True)
 

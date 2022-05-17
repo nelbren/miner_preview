@@ -12,14 +12,14 @@ def show_chart(source, currency, show=False):
     measure_per_day = 6
     width = days * measure_per_day
     records = width
-    #source, currency = "cryptoatcost", "btc"
+    # source, currency = "cryptoatcost", "btc"
     unpaids = (
         Unpaid.select()
         .where((Unpaid.source == source) & (Unpaid.currency == currency))
         .order_by(Unpaid.timestamp.desc())
         .limit(records)
     )
-    #print(unpaids)
+    # print(unpaids)
     values = []
     usds = []
     timestamps = []
