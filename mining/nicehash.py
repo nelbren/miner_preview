@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 """ mining_at_ethermine.py - get information from nicehash.com
-    v0.0.2 - 2022-05-07 - nelbren@nelbren.com """
+    v0.0.3 - 2022-05-09 - nelbren@nelbren.com """
 import os
 import sys
 import requests
@@ -165,8 +165,8 @@ class NCHPanel:
         )
         unpaid_usd = round(unpaid_btc * price, 2)
         #return unpaid_btc, unpaid_usd, next_payout, pending_btc, pending_usd
-        unpaid_btc = f'{unpaid_btc + pending_btc:1.8f}'
-        unpaid_usd = f'{unpaid_usd + pending_usd:05.2f}'
+        unpaid_btc = f'{unpaid_btc:1.8f}'
+        unpaid_usd = f'{unpaid_usd:05.2f}'
         return float(unpaid_btc), float(unpaid_usd)
 
     def __init__(self):
