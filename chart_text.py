@@ -1,12 +1,12 @@
 #!/usr/bin/python3
 """ chart.py - display information as a chart
-    v0.0.5 - 2022-05-07 - nelbren@nelbren.com"""
+    v0.0.6 - 2022-05-18 - nelbren@nelbren.com"""
 from database import db, Unpaid
 import plotext as plt
 from plotext._utility.color import uncolorize
 
 
-def show_chart(source, currency, show=False):
+def show_chart(source, currency, size_term, show=False):
     """Show Chart"""
     days = 7
     measure_per_day = 6
@@ -28,19 +28,22 @@ def show_chart(source, currency, show=False):
         usds.append(unpaid.usd)
         timestamps.append(unpaid.timestamp)
     title = f"Mining {currency.upper()} at {source.upper()} represented in"
+    plt.plot_size(size_term["columns"], 30)
+    plt.limit_size(False)
     plt.subplots(2, 1)
 
     plt.subplot(1, 1)
     plt.clc()
-    plt.ticks_color("cyan")
-    plt.datetime.set_datetime_form(date_form="%Y-%m-%d %H:%M:%S")
-    plt.plot_date(timestamps, usds, fillx=False, color="bright-cyan")
+    plt.date_form("Y-m-d H:M:S")
+    plt.plot(timestamps, usds, fillx=False, color="bright-cyan")
     plt.title(f"{title} USD")
+    plt.ticks_color("cyan")
 
     plt.subplot(2, 1)
-    plt.title(f"{title} BTC")
     plt.clc()
-    plt.plot_date(timestamps, values, color="bright-magenta")
+    plt.date_form("Y-m-d H:M:S")
+    plt.plot(timestamps, values, color="bright-magenta")
+    plt.title(f"{title} BTC")
     plt.ticks_color("magenta")
     if show:
         plt.show()

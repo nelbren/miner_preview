@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 """ table.py - manage table
-    v0.0.3 - 2022-05-14 - nelbren@nelbren.com"""
+    v0.0.4 - 2022-05-18 - nelbren@nelbren.com"""
 import os
 import time
 from rich import box
@@ -14,7 +14,7 @@ from rich.progress import (
 )
 
 
-def get_columns_and_lines():
+def get_columns_and_lines(params):
     """Get size of terminal"""
     try:
         columns, lines = os.get_terminal_size()
@@ -22,6 +22,8 @@ def get_columns_and_lines():
     except OSError:
         # as exception:
         columns, lines = 80, 24  # Default
+    if params["columns"] != -1:
+        columns = params["columns"]
     return {"columns": columns, "lines": lines}
 
 

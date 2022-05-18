@@ -212,6 +212,13 @@ def get_params():
         help="The number of last records to get (0 = All)",
     )
     parser.add_argument(
+        "--columns",
+        type=int,
+        required=False,
+        default=-1,
+        help="The number of columns",
+    )
+    parser.add_argument(
         "-s",
         "--save_dir",
         required=False,
@@ -292,6 +299,7 @@ def get_params():
         "hostname": hostname,
         "update": args.update,
         "records": args.records,
+        "columns": args.columns,
         "save_dir": args.save_dir,
         "mail": args.mail,
         "telegram": args.telegram,
@@ -441,7 +449,7 @@ def show_data(console, params, unpaid_save, size_term):
         iterate_on_records(source, currency, table, params, data)
         timestamp = datetime.now().strftime(TS_FMT)
         tags_title(tag, data["last_unpaid"], timestamp)
-        size_term = get_columns_and_lines()
+        size_term = get_columns_and_lines(params)
         msg = get_goal_msg(
             source, currency, tag, data["last_unpaid"], size_term
         )
@@ -506,7 +514,7 @@ def save_data(source, currency, value, usd):
     return unpaid_save
 
 
-def show_big(params):
+def show_big(params, size_term):
     """Show big"""
     datas = []
     if params["ethermine"]:
@@ -582,7 +590,7 @@ def show_big(params):
         usds["usd_nicehash"] = datas[items]["usd_nicehash"]
         vals["val_nicehash"] = datas[items]["val_nicehash"]
     # print(vals)
-    console, numbers = big_text.show_big(usds, vals, tags, colors)
+    console, numbers = big_text.show_big(usds, vals, tags, colors, size_term)
     # if params["cryptoatcost"]:
     #    big_text.show_big2(console, data["val_cryptoatcost"])
     # if params["nicehash"]:
@@ -590,16 +598,15 @@ def show_big(params):
     return console, numbers
 
 
-def show_chart(console, params):
+def show_chart(console, params, size_term):
     sources = []
     if params["cryptoatcost"]:
         sources.append("cryptoatcost")
     if params["nicehash"]:
         sources.append("nicehash")
     for source in sources:
-        text = chart_text.show_chart(source, "btc")
+        text = chart_text.show_chart(source, "btc", size_term)
         # print(text)
-        # exit(1)
         colors = ["cyan", "magenta"]
         c = 0
         line = ""
@@ -610,11 +617,13 @@ def show_chart(console, params):
                 lines.append(line)
                 line = ""
         chart = 0
+        tag_color = ""
         for line in lines:
             if "Mining" in line:
                 color = colors[chart]
+                tag_color = f"[{color} on black]"
                 chart += 1
-            console.print(f"[{color} on black]{line}")
+            console.print(f"{tag_color}{line}")
 
 
 def get_data_remote(params):
@@ -640,7 +649,7 @@ def get_data_local():
     return btc, usd_cac
 
 
-def get_data(params):
+def get_data(params, size_term):
     """Get data from miner"""
     if params["ethermine"]:
         source, currency = "ethermine", "eth"
@@ -671,17 +680,17 @@ def get_data(params):
         unpaid_save_nsh = save_data(source, currency, btc, usd_nsh)
     else:
         unpaid_save_nhs = 0
-    console, numbers = show_big(params)
+    console, numbers = show_big(params, size_term)
     return console, numbers, {"etm": unpaid_save_etm, "cac": unpaid_save_cac}
 
 
 def do_loop():
     """Eternal Loop 4 forever & ever"""
     setup_db()
-    size_term = get_columns_and_lines()
     params = get_params()
+    size_term = get_columns_and_lines(params)
     while True:
-        console, numbers, unpaid_save = get_data(params)
+        console, numbers, unpaid_save = get_data(params, size_term)
         if params["big"]:
             return
         if params["update"]:
@@ -689,7 +698,7 @@ def do_loop():
             id_save = unpaid_save
             print(f"{timestamp} => {id_save}")
             return
-        show_chart(console, params)
+        show_chart(console, params, size_term)
         seconds, tag = show_data(console, params, unpaid_save, size_term)
         if params["telegram"]:
             telegram_data(params, numbers, tag, next_update)

@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 """ big_text.py - show custom big numbers
-    v0.0.7 - 2022-05-16 - nelbren@nelbren.com"""
+    v0.0.9 - 2022-05-18 - nelbren@nelbren.com"""
 from rich.console import Console
 
 no0 = [
@@ -269,6 +269,7 @@ def add_big_usd(console, source, usd, tags, colors):
     big_line(console, n_formated, color0)
     big_line(console, n_formated, color1)
     big_text(console, n_formated, color1)
+    big_line(console, n_formated, color0)
     return n_formated
 
 
@@ -282,6 +283,7 @@ def add_big_val(console, source, val, tags, colors):
     big_line(console, n_formated, color0)
     big_line(console, n_formated, color1)
     big_text(console, n_formated, color1)
+    big_line(console, n_formated, color0)
     #big_line(console, n_formated, color0)
     return n_formated
 
@@ -294,9 +296,9 @@ def add_title(console, source):
     )
 
 
-def show_big(usds, vals, tags, colors):
+def show_big(usds, vals, tags, colors, size_term):
     """Show big numbers"""
-    console = Console(record=True)
+    console = Console(record=True, width=size_term["columns"])
     numbers = {}
 
     if "usd_ethermine" in usds:
