@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 """ graph.py - display information as a graph
-    v0.0.4 - 2022-05-07 - nelbren@nelbren.com"""
+    v0.0.5 - 2022-05-23 - nelbren@nelbren.com"""
+import os
 from pathlib import Path
 import datetime
 import sqlite3
@@ -11,7 +12,9 @@ from dash.dependencies import Input, Output
 import pandas as pd
 
 HOME = str(Path.home())
-BASE = HOME + "/.miner_preview.db"
+PWD = os.path.dirname(os.path.realpath(__file__))
+PWD_DIR = os.path.basename(PWD)
+BASE = f"{HOME}/.{PWD_DIR}.db"
 TS_FMT = "%Y-%m-%d %H:%M:%S"
 
 conn = sqlite3.connect(BASE, check_same_thread=False)

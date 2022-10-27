@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 """ preview.py - show information from cryptoatcost.com and ethermine.org
-    v0.3.4 - 2022-05-16 - nelbren@nelbren.com"""
+    v0.3.5 - 2022-10-26 - nelbren@nelbren.com"""
 import os
 import re
 import sys
@@ -561,8 +561,8 @@ def show_big(params, size_term):
                 data["tag_val"] = "v"
                 data["color_val"] = "red"
         else:
-            data["tag_usd"] = "="
-            data["tag_val"] = "="
+            data["tag_usd"] =  data["tag_val"] = "="
+            data["color_usd"] = data["color_val"] = "white"
     tags, colors, usds, vals = {}, {}, {}, {}
     colors["normal"] = "black"
     items = 0
@@ -644,7 +644,7 @@ def get_data_remote(params):
 
 def get_data_local():
     """Get data using this host"""
-    cacpanel = mining_at_cryptoatcost.CACPanel()
+    cacpanel =  mining.cryptoatcost.CACPanel()
     btc, usd_cac = cacpanel.wallet()
     return btc, usd_cac
 
