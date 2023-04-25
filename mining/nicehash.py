@@ -142,7 +142,8 @@ class NCHPanel:
 
     def unpaid(self):
         data = self.request("GET", "/main/api/v2/mining/algo/stats", "", None)
-        return data["algorithms"]["DAGGERHASHIMOTO"]["unpaid"]
+        #return data["algorithms"]["DAGGERHASHIMOTO"]["unpaid"]
+        return list(data["algorithms"].values())[0]["unpaid"]
 
     def wallet(self):
         """Get Miner information"""
