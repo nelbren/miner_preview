@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 """ mining_at_cryptoatcost.py - get information from cryptoatcost.com
-    v0.2.0 - 2022-05-07 - nelbren@nelbren.com
+    v0.2.1 - 2023-04-25 - nelbren@nelbren.com
     NOTE: 2FA code thanks to Isonium """
 import re
 import os
@@ -193,14 +193,15 @@ class CACPanel:
             return -1, -1
         if DEBUG:
             print("Wallet 💰-> ", end="", flush=True)
-        url = self.url_base + "/wallet"
+        url = self.url_base + "/wallet/btc"
         page = self.session.get(url)
         # reg1 = r'<u class="wallet-conversion-val-cac color-gray">\$(.+)</u>'
-        reg1 = (
-            r'<span class="wallet-balance-val-cac text-end">(.+)</span></h5>'
-        )
+        # reg1 = r'<span class="wallet-balance-val-cac text-end">(.+)</span></h5>'
+        reg1 = r'<h1 class="color-white font-30">\$(.+)&nbsp;USD<\/h1>'
+
         # reg2 = r'<i class="wallet-balance-val-cac">(.+)</i>'
-        reg2 = r'<span class="color-grey d-block wallet-conversion-val-cac text-end">\$(.+)</span>'
+        # reg2 = r'<span class="color-grey d-block wallet-conversion-val-cac text-end">\$(.+)</span>'
+        reg2 = r'<h1 class="color-white font-30">(.+)&nbsp;BTC'
         reg = reg1 + r"\n.*" + reg2
         parse = re.findall(reg, page.content.decode("utf-8"))
         if DEBUG > 1:
@@ -211,8 +212,8 @@ class CACPanel:
             )
         debug(parse)
         if parse:
-            _btc = float(parse[0][0])
-            _usd = float(parse[0][1])
+            _usd = float(parse[0][0])
+            _btc = float(parse[0][1])
         else:
             print(f"{TAG[0]} Can't get crypto info", flush=True)
             raise CantGetUSDandBTC
