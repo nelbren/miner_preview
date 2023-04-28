@@ -1,7 +1,8 @@
 #!/usr/bin/python3
 """ big_text.py - show custom big numbers
-    v0.0.9 - 2022-05-18 - nelbren@nelbren.com"""
+    v0.1.0 - 2023-04-28 - nelbren@nelbren.com"""
 from rich.console import Console
+from table import get_columns_and_lines
 
 no0 = [
     [2, 1, 1, 1, 1, 2, 0, 0],
@@ -193,6 +194,16 @@ eth = [
     [0, 0, 0, 1, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 0],
 ]
+cct = [
+    [0, 0, 1, 0, 0, 1, 0, 0],
+    [0, 2, 1, 1, 1, 1, 2, 0],
+    [0, 1, 3, 0, 0, 3, 1, 0],
+    [0, 1, 0, 0, 0, 0, 0, 0],
+    [0, 1, 2, 0, 0, 2, 1, 0],
+    [0, 3, 1, 1, 1, 1, 3, 0],
+    [0, 0, 1, 0, 0, 1, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0],
+]
 
 numbers = {
     "0": no0,
@@ -213,6 +224,7 @@ numbers = {
     "B": btc,
     "E": eth,
     " ": spc,
+    "C": cct,
 }
 
 
@@ -273,13 +285,14 @@ def add_big_usd(console, source, usd, tags, colors):
     return n_formated
 
 
-def add_big_val(console, source, val, tags, colors):
+def add_big_val(console, source, currency, val, tags, colors):
     """Add big val"""
     val_source = f"val_{source}"
+    crypto = currency[0:1]
     tag1 = tags[val_source]
     color0 = colors["normal"]
     color1 = colors[val_source]
-    n_formated = f"{tag1}B{val:10.8f}"
+    n_formated = f"{tag1}{crypto}{val:10.8f}"
     big_line(console, n_formated, color0)
     big_line(console, n_formated, color1)
     big_text(console, n_formated, color1)
@@ -296,7 +309,7 @@ def add_title(console, source):
     )
 
 
-def show_big(usds, vals, tags, colors, size_term):
+def show_big(usds, cryptos, vals, tags, colors, size_term):
     """Show big numbers"""
     console = Console(record=True, width=size_term["columns"])
     numbers = {}
@@ -307,7 +320,7 @@ def show_big(usds, vals, tags, colors, size_term):
             console, "ethermine", usds["usd_ethermine"], tags, colors
         )
         format_val = add_big_val(
-            console, "ethermine", vals["val_ethermine"], tags, colors
+            console, "ethermine", cryptos["val_ethermine"], vals["val_ethermine"], tags, colors
         )
         numbers["ethermine"] = {"usd": format_usd, "val": format_val}
     if "usd_cryptoatcost" in usds:
@@ -316,7 +329,7 @@ def show_big(usds, vals, tags, colors, size_term):
             console, "cryptoatcost", usds["usd_cryptoatcost"], tags, colors
         )
         format_val = add_big_val(
-            console, "cryptoatcost", vals["val_cryptoatcost"], tags, colors
+            console, "cryptoatcost", cryptos["val_cryptoatcost"], vals["val_cryptoatcost"], tags, colors
         )
         numbers["cryptoatcost"] = {"usd": format_usd, "val": format_val}
     if "usd_nicehash" in usds:
@@ -325,7 +338,7 @@ def show_big(usds, vals, tags, colors, size_term):
             console, "nicehash", usds["usd_nicehash"], tags, colors
         )
         format_val = add_big_val(
-            console, "nicehash", vals["val_nicehash"], tags, colors
+            console, "nicehash", cryptos["val_nicehash"], vals["val_nicehash"], tags, colors
         )
         numbers["nicehash"] = {"usd": format_usd, "val": format_val}
     return console, numbers
@@ -344,19 +357,27 @@ def show_big2(console, btc):
 
 if __name__ == "__main__":
     from random import randint
-
+    _size_term = get_columns_and_lines({"columns": -1})
     _usd = {}
-    _usd["usd_ethermine"] = 10.97
     _usd["usd_cryptoatcost"] = 145.99
-    _tags = {"usd_cryptoatcost": "^"}
-    _colors = {"normal": "black", "usd_cryptoatcost": "green"}
+    _cryptos = {}
+    _cryptos["val_cryptoatcost"] = "C"
+    _vals = {}
+    _vals["val_cryptoatcost"] = 167.38609324
+    _colors = {"normal": "black"}
+    _tags = {}
     if randint(0, 1):
-        _tags["usd_ethermine"] = "="
-        _colors["usd_ethermine"] = "white"
+        _tags["usd_cryptoatcost"] = "^"
+        _tags["val_cryptoatcost"] = "^"
+        _colors["usd_cryptoatcost"] = "green"
+        _colors["val_cryptoatcost"] = "green"
     else:
-        _tags["usd_ethermine"] = "v"
-        _colors["usd_ethermine"] = "red"
-    _console, _numbers = show_big(_usd, _tags, _colors)
+        _tags["usd_cryptoatcost"] = "v"
+        _tags["val_cryptoatcost"] = "v"
+        _colors["usd_cryptoatcost"] = "red"
+        _colors["val_cryptoatcost"] = "red"
+    _console, _numbers = show_big(_usd, _cryptos, _vals, _tags, _colors, _size_term)
     _btc = 0.01494931
-    show_big2(_console, _btc)
+    _btc = 167.38609324
+    #show_big2(_console, _btc)
     # print(_numbers)

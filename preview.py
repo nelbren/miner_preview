@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 """ preview.py - show information from cryptoatcost.com and ethermine.org
-    v0.3.6 - 2023-04-27 - nelbren@nelbren.com"""
+    v0.3.7 - 2023-04-28 - nelbren@nelbren.com"""
 import os
 import re
 import sys
@@ -456,9 +456,8 @@ def show_data(console, params, unpaid_save, size_term):
         console.print(
             f"{tag['title']} ⛏️ {currency.upper()}@"
             f"[bold white]{timestamp}[not bold black] "
-            f"{tag['ok']}{msg}",
-            style=tag["style"],
-            justify="center",
+            f"{tag['ok']}{msg}[white on black][not bold] ",
+            style=tag["style"]
         )
         console.print(table)
     if params["records"] != 0:
@@ -563,7 +562,7 @@ def show_big(params, size_term):
         else:
             data["tag_usd"] =  data["tag_val"] = "="
             data["color_usd"] = data["color_val"] = "white"
-    tags, colors, usds, vals = {}, {}, {}, {}
+    tags, colors, usds, cryptos, vals = {}, {}, {}, {}, {}
     colors["normal"] = "black"
     items = 0
     if params["ethermine"]:
@@ -572,6 +571,7 @@ def show_big(params, size_term):
         colors["usd_ethermine"] = datas[items]["color_usd"]
         colors["val_ethermine"] = datas[items]["color_val"]
         usds["usd_ethermine"] = datas[items]["usd_ethermine"]
+        cryptos["val_ethermine"] = datas[items]["currency"][0:1].upper()
         vals["val_ethermine"] = datas[items]["val_ethermine"]
         items += 1
     if params["cryptoatcost"]:
@@ -580,6 +580,7 @@ def show_big(params, size_term):
         colors["usd_cryptoatcost"] = datas[items]["color_usd"]
         colors["val_cryptoatcost"] = datas[items]["color_val"]
         usds["usd_cryptoatcost"] = datas[items]["usd_cryptoatcost"]
+        cryptos["val_cryptoatcost"] = datas[items]["currency"][0:1].upper()
         vals["val_cryptoatcost"] = datas[items]["val_cryptoatcost"]
         items += 1
     if params["nicehash"]:
@@ -588,9 +589,10 @@ def show_big(params, size_term):
         colors["usd_nicehash"] = datas[items]["color_usd"]
         colors["val_nicehash"] = datas[items]["color_val"]
         usds["usd_nicehash"] = datas[items]["usd_nicehash"]
+        cryptos["val_nicehash"] = datas[items]["currency"][0:1].upper()
         vals["val_nicehash"] = datas[items]["val_nicehash"]
     # print(vals)
-    console, numbers = big_text.show_big(usds, vals, tags, colors, size_term)
+    console, numbers = big_text.show_big(usds, cryptos, vals, tags, colors, size_term)
     # if params["cryptoatcost"]:
     #    big_text.show_big2(console, data["val_cryptoatcost"])
     # if params["nicehash"]:
@@ -669,9 +671,9 @@ def get_data(params, size_term):
                 val_cac, usd_cac = get_data_remote(params)
             else:
                 val_cac, usd_cac = get_data_local(params['cryptoatcost'])
-            print(source, currency, val_cac, usd_cac)
+            #print(source, currency, val_cac, usd_cac)
             unpaid_save_cac = save_data(source, currency, val_cac, usd_cac)
-            print(unpaid_save_cac)
+            #print(unpaid_save_cac)
         except mining.cryptoatcost.MaintenanceMode:
             unpaid_save_cac = 0
     else:

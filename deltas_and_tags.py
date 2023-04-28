@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 """ deltas_and_tags.py - set deltas and tags
-    v0.0.5 - 2022-05-07 - nelbren@nelbren.com"""
+    v0.0.6 - 2023-04-28 - nelbren@nelbren.com"""
 
 from datetime import datetime, timedelta
 from config import get_config
@@ -128,11 +128,14 @@ def get_goal_msg_item(tag, label, goal, value, item_cols):
     return goal_msg
 
 
-def get_goals(miner):
+def get_goals(miner, currency):
     """Get goals from config"""
     cfg = get_config()
     if miner == "cryptoatcost":
-        return cfg["cac_goal_usd"], cfg["cac_goal_btc"]
+        if currency == "btc":
+            return cfg["cac_goal_usd"], cfg["cac_goal_btc"]
+        elif currency == "cct":
+            return cfg["cac_goal_usd"], cfg["cac_goal_cct"]
     elif miner == "nicehash":
         return cfg["nch_goal_usd"], cfg["nch_goal_btc"]
     return cfg["etm_goal_usd"], cfg["etm_goal_btc"]
@@ -140,11 +143,11 @@ def get_goals(miner):
 
 def get_goal_msg(source, currency, tag, unpaid, size_term):
     """Goal Message"""
-    goal_usd, goal_val = get_goals(source)
+    goal_usd, goal_val = get_goals(source, currency)
     if not goal_usd and not goal_val:
         return ""
 
-    rest_cols = size_term["columns"] - 37
+    rest_cols = size_term["columns"] - 39
     items = 0
     if goal_usd:
         items += 1

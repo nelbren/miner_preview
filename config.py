@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 """ config.py - get configuration
-    v0.0.6 - 2022-05-07 - nelbren@nelbren.com """
+    v0.0.7 - 2023-04-28 - nelbren@nelbren.com """
 import os
 import sys
 import configparser
@@ -30,6 +30,7 @@ def get_config():
     code_2fa = config.get(section, "CODE_2FA", fallback=None)
     cac_goal_usd = config.get(section, "GOAL_USD", fallback=None)
     cac_goal_btc = config.get(section, "GOAL_BTC", fallback=None)
+    cac_goal_cct = config.get(section, "GOAL_CCT", fallback=None)
     section = "ETHERMINE"
     address = config.get(section, "ADDRESS", fallback=None)
     etm_goal_usd = config.get(section, "GOAL_USD", fallback=None)
@@ -53,6 +54,7 @@ def get_config():
         "code_2fa": code_2fa,
         "cac_goal_usd": cac_goal_usd,
         "cac_goal_btc": cac_goal_btc,
+        "cac_goal_cct": cac_goal_cct,
         "address": address,
         "etm_goal_usd": etm_goal_usd,
         "etm_goal_btc": etm_goal_btc,
