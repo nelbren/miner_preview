@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 """ preview.py - show information from cryptoatcost.com and ethermine.org
-    v0.3.5 - 2022-10-26 - nelbren@nelbren.com"""
+    v0.3.6 - 2023-04-27 - nelbren@nelbren.com"""
 import os
 import re
 import sys
@@ -182,9 +182,9 @@ def get_params():
     parser.add_argument(
         "-c",
         "--cryptoatcost",
-        action="store_true",
-        default=False,
-        dest="cryptoatcost",
+        type=str,
+        default="btc",
+        #dest="cryptoatcost",
         help="Only show cryptoatcost info",
     )
     parser.add_argument(
@@ -440,7 +440,7 @@ def show_data(console, params, unpaid_save, size_term):
     tag = {}
     for source in sources:
         if source == "cryptoatcost":
-            currency = "btc"
+            currency = params["cryptoatcost"]
         elif source == "nicehash":
             currency = "btc"
         else:
@@ -523,7 +523,7 @@ def show_big(params, size_term):
         )
     if params["cryptoatcost"]:
         datas.append(
-            {"source": "cryptoatcost", "currency": "btc", "color": "white"}
+            {"source": "cryptoatcost", "currency": params["cryptoatcost"], "color": "white"}
         )
     if params["nicehash"]:
         datas.append(
@@ -601,11 +601,11 @@ def show_big(params, size_term):
 def show_chart(console, params, size_term):
     sources = []
     if params["cryptoatcost"]:
-        sources.append("cryptoatcost")
+        sources.append({ "source": "cryptoatcost", "crypto": params["cryptoatcost"] })
     if params["nicehash"]:
-        sources.append("nicehash")
+        sources.append({ "source": "nicehash", "crypto": "btc" })
     for source in sources:
-        text = chart_text.show_chart(source, "btc", size_term)
+        text = chart_text.show_chart(source["source"], source["crypto"], size_term)
         # print(text)
         colors = ["cyan", "magenta"]
         c = 0
@@ -630,23 +630,24 @@ def get_data_remote(params):
     """Get data using another host"""
     pwd = os.path.dirname(os.path.realpath(__file__))
     cmd = f"{pwd}/mining/cryptoatcost.py"
+    crypto = params['cryptoatcost'].upper()
     result = subprocess.Popen(
-        f"ssh {params['hostname']} {cmd}",
+        f"ssh {params['hostname']} {cmd} {crypto}",
         shell=True,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
     ).communicate()
     data = result[0].decode("utf-8").rstrip("\n")
     lst_data = data.split(" ")
-    btc, usd_cac = float(lst_data[1]), float(lst_data[3])
-    return btc, usd_cac
+    val_cac, usd_cac = float(lst_data[1]), float(lst_data[3])
+    return val_cac, usd_cac
 
 
-def get_data_local():
+def get_data_local(crypto):
     """Get data using this host"""
     cacpanel =  mining.cryptoatcost.CACPanel()
-    btc, usd_cac = cacpanel.wallet()
-    return btc, usd_cac
+    val_cac, usd_cac = cacpanel.wallet(crypto.upper())
+    return val_cac, usd_cac
 
 
 def get_data(params, size_term):
@@ -659,16 +660,18 @@ def get_data(params, size_term):
     else:
         unpaid_save_etm = 0
     if params["cryptoatcost"]:
-        source, currency = "cryptoatcost", "btc"
+        source, currency = "cryptoatcost", params['cryptoatcost']
         try:
             if (
                 params["hostname"]
                 and params["hostname"] != socket.gethostname()
             ):
-                btc, usd_cac = get_data_remote(params)
+                val_cac, usd_cac = get_data_remote(params)
             else:
-                btc, usd_cac = get_data_local()
-            unpaid_save_cac = save_data(source, currency, btc, usd_cac)
+                val_cac, usd_cac = get_data_local(params['cryptoatcost'])
+            print(source, currency, val_cac, usd_cac)
+            unpaid_save_cac = save_data(source, currency, val_cac, usd_cac)
+            print(unpaid_save_cac)
         except mining.cryptoatcost.MaintenanceMode:
             unpaid_save_cac = 0
     else:

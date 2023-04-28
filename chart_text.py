@@ -1,6 +1,6 @@
 #!/usr/bin/python3
-""" chart.py - display information as a chart
-    v0.0.6 - 2022-05-18 - nelbren@nelbren.com"""
+""" chart_text.py - display information as a chart
+    v0.0.7 - 2023-04-27 - nelbren@nelbren.com"""
 from database import db, Unpaid
 import plotext as plt
 from plotext._utility.color import uncolorize
@@ -43,7 +43,7 @@ def show_chart(source, currency, size_term, show=False):
     plt.clc()
     plt.date_form("Y-m-d H:M:S")
     plt.plot(timestamps, values, color="bright-magenta")
-    plt.title(f"{title} BTC")
+    plt.title(f"{title} {currency.upper()}")
     plt.ticks_color("magenta")
     if show:
         plt.show()

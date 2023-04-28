@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 """ mining_at_cryptoatcost.py - get information from cryptoatcost.com
-    v0.2.1 - 2023-04-25 - nelbren@nelbren.com
+    v0.2.2 - 2023-04-27 - nelbren@nelbren.com
     NOTE: 2FA code thanks to Isonium """
 import re
 import os
@@ -187,13 +187,13 @@ class CACPanel:
                 return
         self.pre_login()
 
-    def wallet(self):
+    def wallet(self, crypto):
         """Get Wallet information"""
         if not self.logged:
             return -1, -1
         if DEBUG:
             print("Wallet 💰-> ", end="", flush=True)
-        url = self.url_base + "/wallet/btc"
+        url = self.url_base + "/wallet/" + crypto.lower()
         page = self.session.get(url)
         # reg1 = r'<u class="wallet-conversion-val-cac color-gray">\$(.+)</u>'
         # reg1 = r'<span class="wallet-balance-val-cac text-end">(.+)</span></h5>'
@@ -201,7 +201,7 @@ class CACPanel:
 
         # reg2 = r'<i class="wallet-balance-val-cac">(.+)</i>'
         # reg2 = r'<span class="color-grey d-block wallet-conversion-val-cac text-end">\$(.+)</span>'
-        reg2 = r'<h1 class="color-white font-30">(.+)&nbsp;BTC'
+        reg2 = fr'<h1 class="color-white font-30">(.+)&nbsp;{crypto}'
         reg = reg1 + r"\n.*" + reg2
         parse = re.findall(reg, page.content.decode("utf-8"))
         if DEBUG > 1:
@@ -213,20 +213,21 @@ class CACPanel:
         debug(parse)
         if parse:
             _usd = float(parse[0][0])
-            _btc = float(parse[0][1])
+            _val = float(parse[0][1])
         else:
             print(f"{TAG[0]} Can't get crypto info", flush=True)
             raise CantGetUSDandBTC
-        return _btc, _usd
+        return _val, _usd
 
 
 DEBUG = 0
 TAG = ["✖", "✔"]
 
 if __name__ == "__main__":
+    crypto = sys.argv[1] if len(sys.argv) == 2 else 'BTC'
     try:
         cacpanel = CACPanel()
-        btc, usd = cacpanel.wallet()
+        val, usd = cacpanel.wallet(crypto)
     except CantGetCsrf:
         sys.exit(3)
     except CantGetUSDandBTC:
@@ -234,4 +235,4 @@ if __name__ == "__main__":
     except MaintenanceMode:
         sys.exit(6)
     else:
-        print(f"BTC: {btc:1.8f} USD: {usd:05.2f}", flush=True)
+        print(f"{crypto}: {val:1.8f} USD: {usd:05.2f}", flush=True)
