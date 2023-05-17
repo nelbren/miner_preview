@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 """ preview.py - show information from cryptoatcost.com and ethermine.org
-    v0.3.7 - 2023-04-28 - nelbren@nelbren.com"""
+    v0.3.8 - 2023-04-30 - nelbren@nelbren.com"""
 import os
 import re
 import sys
@@ -162,7 +162,12 @@ def telegram_data(params, numbers, tag, next_update):
     numbers = ["0️⃣", "1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣"]
     msg += numbers[1]
     next_update_str = next_update["timestamp"]
-    msg += f"🔜{next_update_str}xBTC"
+    print(params)
+    if params["cryptoatcost"]:
+       crypto=params["cryptoatcost"].upper()
+    else:
+       crypto="BTC"
+    msg += f"🔜{next_update_str}x{crypto}"
     telegram_send_msg(cfg, msg)
 
 
