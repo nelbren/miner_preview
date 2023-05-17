@@ -212,7 +212,7 @@ class CACPanel:
             )
         debug(parse)
         if parse:
-            _usd = float(parse[0][0])
+            _usd = float(parse[0][0].replace(',', ''))
             _val = float(parse[0][1])
         else:
             print(f"{TAG[0]} Can't get crypto info", flush=True)
