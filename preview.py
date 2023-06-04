@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 """ preview.py - show information from cryptoatcost.com and ethermine.org
-    v0.3.8 - 2023-04-30 - nelbren@nelbren.com"""
+    v0.3.9 - 2023-06-03 - nelbren@nelbren.com"""
 import os
 import re
 import sys
@@ -22,6 +22,7 @@ from rich.console import Console
 import mining.cryptoatcost
 import mining.ethermine
 import mining.nicehash
+import staking.cryptoatcost
 from database import db, Unpaid
 from deltas_and_tags import (
     tags_row,
@@ -647,14 +648,31 @@ def get_data_remote(params):
     data = result[0].decode("utf-8").rstrip("\n")
     lst_data = data.split(" ")
     val_cac, usd_cac = float(lst_data[1]), float(lst_data[3])
-    return val_cac, usd_cac
+
+    cmd = f"{pwd}/staking/cryptoatcost.py"
+    crypto = params['cryptoatcost'].upper()
+    result = subprocess.Popen(
+        f"ssh {params['hostname']} {cmd} {crypto}",
+        shell=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    ).communicate()
+    data = result[0].decode("utf-8").rstrip("\n")
+    lst_data = data.split(" ")
+    val2_cac, usd_cac2 = float(lst_data[1]), float(lst_data[3])
+
+    return val_cac + val2_cac, usd_cac + usd_cac2
 
 
 def get_data_local(crypto):
     """Get data using this host"""
     cacpanel =  mining.cryptoatcost.CACPanel()
     val_cac, usd_cac = cacpanel.wallet(crypto.upper())
-    return val_cac, usd_cac
+
+    cacpanel =  staking.cryptoatcost.CACPanel()
+    val_cac2, usd_cac2 = cacpanel.wallet(crypto.upper())
+
+    return val_cac + val_cac2, usd_cac + usd_cac2
 
 
 def get_data(params, size_term):
