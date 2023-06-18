@@ -1,3 +1,10 @@
 .secret.cfg
 __pycache__/
 .vscode/
+lib/
+lib64
+bin/
+share/
+include/
+etc/
+pyvenv.cfg

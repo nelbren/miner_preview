@@ -1,5 +1,6 @@
 peewee
 rich
+urllib3
 requests
 imgkit
 black
