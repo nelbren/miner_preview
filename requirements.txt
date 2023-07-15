@@ -16,4 +16,4 @@ gunicorn
 eventlet==0.30.2
 twill
 mechanize
-plotext==5.0.2
+plotext

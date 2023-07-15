@@ -1,9 +1,9 @@
 #!/usr/bin/python3
 """ chart_text.py - display information as a chart
-    v0.0.7 - 2023-04-27 - nelbren@nelbren.com"""
+    v0.0.8 - 2023-07-04 - nelbren@nelbren.com"""
 from database import db, Unpaid
 import plotext as plt
-from plotext._utility.color import uncolorize
+#from plotext._utility.color import uncolorize
 
 
 def show_chart(source, currency, size_term, show=False):
@@ -48,7 +48,7 @@ def show_chart(source, currency, size_term, show=False):
     if show:
         plt.show()
     else:
-        return uncolorize(plt.build())
+        return plt.uncolorize(plt.build())
 
 
 if __name__ == "__main__":
